@@ -1,0 +1,6 @@
+{ 
+    "mongo_url":"mongodb://localhost:27017/recrutement",
+    "jwtSecret":"jwtSecret",
+    "tokenExpire":"2592000"
+
+}
