@@ -24,7 +24,7 @@ const Login = () => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("name", res.data.username);
       localStorage.setItem("role", res.data.role);
-      //localStorage.setItem("email", res.data.email);
+      localStorage.setItem("email", res.data.email);
 
       setMessage(`Bienvenue ${res.data.username} !`);
 
