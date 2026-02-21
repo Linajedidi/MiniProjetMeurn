@@ -9,7 +9,7 @@ const Register = () => {
     username: "",
     email: "",
     password: "",
-    role: "CANDIDAT", // valeur par défaut – on peut aussi proposer un select
+    role: "CANDIDAT", 
   });
 
   const [message, setMessage] = useState("");
