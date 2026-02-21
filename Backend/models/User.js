@@ -20,7 +20,8 @@ role: {
     type: String, 
     enum: ["ADMIN", "CANDIDAT", "ENTREPRISE"], 
     default: "CANDIDAT" 
-}
+},
+
 
 
 });

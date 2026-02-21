@@ -93,12 +93,16 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       username: user.username,
-      role: user.role,          
+      role: user.role, 
+      email: user.email,   // ⚠️ CECI EST OBLIGATOIRE
+         
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Erreur serveur" });
   }
 });
+
+
 
 module.exports = router;
