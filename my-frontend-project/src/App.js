@@ -4,7 +4,11 @@ import Register from "./components/Register";     // renomme ton App en Register
 import AdminDashboard from "./pages/AdminDashboard";
 import CandidatHome from "./pages/CandidatHome";
 import EntrepriseHome from "./pages/EntrepriseHome";
-import Home from "./pages/home";                   // page par défaut après login
+import AdminLayout from './components/Sidebar';
+import UsersPage from "./pages/UsersPage";
+import Home from "./pages/home";                   
+import ProfilePage from "./pages/ProfilePage";
+
 
 function App() {
   return (
@@ -16,6 +20,11 @@ function App() {
         <Route path="/pages/AdminDashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/pages/CandidatHome" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
         <Route path="/pages/EntrepriseHome" element={<ProtectedRoute role="ENTREPRISE"><EntrepriseHome /></ProtectedRoute>} />
+        <Route path="/admin" element={<AdminLayout />}></Route>
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
