@@ -18,8 +18,8 @@ password :{
 },
 role: { 
     type: String, 
-    enum: ["ADMIN", "CANDIDAT", "ENTREPRISE"], 
-    default: "CANDIDAT" 
+    enum: ["admin", "candidat", "entreprise"], 
+    default: "candidat" 
 }
 
 
