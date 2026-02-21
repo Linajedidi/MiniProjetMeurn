@@ -1,95 +1,104 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
-const config = require ("config");
+const config = require("config");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/User");
 
-// @route POST api/users
-// @desc Register new user
-//@access Public
-router.post("/register", (req, res) => {
-// Destructure required fields from req.body
-const {username, email, password, role } = req.body;
-// Check if any required fields are missing
-if (!username || !email || !password) {
-return res.status(400).send({ status: "notok", msg: "Please enter all required data" });
-}
+//registre
+router.post("/register", async (req, res) => {
+  const { username, email, password, role } = req.body;
 
-// Check if email already exists
-User.findOne({ email: email }).then((user) => {
-if (user) {
-return res.status(400).send({ status: "notokmail", msg: "Email already exists" });
-}
-// Create a new user instance
-const newUser = new User({
-username,
-email,
-password,
-role
-});
+  if (!username || !email || !password) {
+    return res.status(400).json({ status: "notok", msg: "Veuillez remplir tous les champs obligatoires" });
+  }
 
-// Generate salt and hash password
-bcrypt.genSalt(10, (err, salt) => {
-if (err) {
-return res.status(500).send({ status: "error", msg: "Internal server error" });
-}
-bcrypt.hash(newUser.password, salt, (err, hash) => {
-if (err) {
-return res.status(500).send({ status: "error", msg: "Internal server error" });
-}
-// Replace plain password with hashed password
-newUser.password = hash;
-// Save the user to the database
-newUser.save()
-.then((user) => {
-// Generate JWT token
-jwt.sign({ id: user.id },config.get("jwtSecret"),{ expiresIn: config.get("tokenExpire") },
-(err, token) => {
-if (err) {
-return res.status(500).send({ status: "error", msg: "Internal server error" });
-}
-// Send response with token and user details
-res.status(200).send({ status: "ok", msg: "Successfully registered",token, user });
-}
-);
-})
-.catch(err => {
-return res.status(500).send({ status: "error", msg: "Internal server error" });
-});
-});
-});
-})
-.catch(err => {
-return res.status(500).send({ status: "error", msg: "Internal server error"
-});
-});
+  try {
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ status: "notokmail", msg: "Cet email est déjà utilisé" });
+    }
+
+    user = new User({
+      username,
+      email,
+      password,
+      role: role || "CANDIDAT", 
+    });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    await user.save();
+
+    const payload = {
+      id: user.id,
+      role: user.role,
+    };
+
+    jwt.sign(
+      payload,
+      config.get("jwtSecret"),
+      { expiresIn: config.get("tokenExpire") || "7d" },
+      (err, token) => {
+        if (err) throw err;
+        res.json({
+          status: "ok",
+          msg: "Inscription réussie",
+          token,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          },
+        });
+      }
+    );
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "error", msg: "Erreur serveur" });
+  }
 });
 
+//login
 router.post("/login", async (req, res) => {
-// Destructure required fields from req.body
-const {email, password} = req.body;
-// Check if any required fields are missing
-try {
-    const user = await User.findOne({email});
-    if (!user) return res.status(400).json({message : 'Utilisateur non troouve'});
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ msg: "Email et mot de passe requis" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ msg: "Utilisateur non trouvé" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({message : 'mot de pass incoreect'});
-    const JWT_SECRET = config.get("jwtSecret");
-    const tokenExpire=config.get("tokenExpire")
-    //generer le token 
-    const token = jwt.sign ({id : user._id, name: user.username}, JWT_SECRET,{expiresIn: tokenExpire});
-    
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Mot de passe incorrect" });
+    }
 
-    res.json({token,username:user.username});
+    const payload = {
+      id: user.id,
+      role: user.role,
+    };
 
-} catch (err) {
-    res.status(500).json({message: 'Erreur serveur'});
+    const token = jwt.sign(
+      payload,
+      config.get("jwtSecret"),
+      { expiresIn: config.get("tokenExpire") || "7d" }
+    );
 
-}
+    res.json({
+      token,
+      username: user.username,
+      role: user.role,          
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Erreur serveur" });
+  }
 });
-// Route protegée /home
-
-
 
 module.exports = router;
-

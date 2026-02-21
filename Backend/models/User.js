@@ -16,10 +16,12 @@ password :{
     required : true ,
 
 },
-role: {
-    type : String,
-
+role: { 
+    type: String, 
+    enum: ["ADMIN", "CANDIDAT", "ENTREPRISE"], 
+    default: "CANDIDAT" 
 }
+
 
 });
 //creer un modele base sure ce schéma
