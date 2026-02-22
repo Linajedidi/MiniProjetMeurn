@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   FaTachometerAlt, 
-  FaUsers, 
+  
   FaBriefcase, 
   FaUserTie, 
   FaUser, 
@@ -9,9 +9,9 @@ import {
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-const Sidebar = ({ children }) => {
+const SidebarEntrep = ({ children }) => {
   const navigate = useNavigate();
-  const username = localStorage.getItem('name') || 'Administrateur';
+  const username = localStorage.getItem('name') || 'Entreprise';
 
   const menuStyle = (active = false) => ({
     padding: '15px 20px',
@@ -41,24 +41,24 @@ const Sidebar = ({ children }) => {
             padding: '20px 0',
             color: 'white'
           }}>
-            Admin
+            Entreprise
           </h3>
 
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={menuStyle(true)} onClick={() => navigate('/pages/AdminDashboard')}>
+            <li style={menuStyle(true)} onClick={() => navigate('/pages/EntrepriseHome')}>
               <FaTachometerAlt /> Tableau de bord
             </li>
-            <li style={menuStyle()} onClick={() => navigate('/users')}>
-              <FaUsers /> Utilisateurs
-            </li>
-            <li style={menuStyle()} onClick={() => navigate('/offres')}>
+            <li style={menuStyle()} onClick={() => navigate('/MesoffresEnt')}>
               <FaBriefcase /> Mes Offres
             </li>
             <li style={menuStyle()} onClick={() => navigate('/candidats')}>
               <FaUserTie /> Candidats
             </li>
-            <li style={menuStyle()} onClick={() => navigate('/profile')}>
-              <FaUser /> Profil
+            <li style={menuStyle()} onClick={() => navigate('/Notifications')}>
+              <FaBriefcase /> Notifications
+            </li>
+            <li style={menuStyle()} onClick={() => navigate('/Profile')}>
+              <FaUser /> Profile
             </li>
           </ul>
         </div>
@@ -99,7 +99,7 @@ const Sidebar = ({ children }) => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span>{username}</span>
-            {/* <img
+           {/*  <img
               src="https://i.pravatar.cc/40"
               alt="admin"
               style={{ borderRadius: '50%' }}
@@ -117,4 +117,4 @@ const Sidebar = ({ children }) => {
   );
 };
 
-export default Sidebar;
+export default SidebarEntrep;

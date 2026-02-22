@@ -8,6 +8,12 @@ import AdminLayout from './components/Sidebar';
 import UsersPage from "./pages/UsersPage";
 import Home from "./pages/home";                   
 import ProfilePage from "./pages/ProfilePage";
+import MesoffresEnt from "./pages/MesoffresEnt";
+import Createoffre from "./pages/Createoffre.js";
+
+
+
+
 
 
 function App() {
@@ -23,7 +29,11 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}></Route>
         <Route path="/users" element={<UsersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/MesoffresEnt" element={<MesoffresEnt />} />
+        <Route path="/Createoffre" element={<Createoffre />} />
 
+      
+       
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
