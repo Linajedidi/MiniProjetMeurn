@@ -1,13 +1,17 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/login";
-import Register from "./components/Register";     // renomme ton App en Register
+import Register from "./components/Register";     
 import AdminDashboard from "./pages/AdminDashboard";
 import CandidatHome from "./pages/CandidatHome";
 import EntrepriseHome from "./pages/EntrepriseHome";
 import AdminLayout from './components/Sidebar';
+
 import UsersPage from "./pages/UsersPage";
 import Home from "./pages/home";                   
 import ProfilePage from "./pages/ProfilePage";
+import OffresPage from "./pages/OffresPage";
+import CandidatsPage from "./pages/CandidatsPage";
+import EntreprisePage from "./pages/EntreprisePage";
 
 
 function App() {
@@ -23,7 +27,9 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}></Route>
         <Route path="/users" element={<UsersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-
+        <Route path="/offres" element={<OffresPage />} />
+        <Route path="/candidat" element={<CandidatsPage />} />
+        <Route path="/entreprise" element={<EntreprisePage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

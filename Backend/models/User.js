@@ -1,5 +1,4 @@
 const mongoose = require ('mongoose');
-//Définir le schéma utilisateur
 const UserSchema= new mongoose.Schema({
 username:{
     type : String, 
@@ -25,7 +24,6 @@ role: {
 
 
 });
-//creer un modele base sure ce schéma
 const User = mongoose.model('User',UserSchema);
 module.exports = User; 
 

@@ -7,7 +7,7 @@ router.post("/", userController.createUser);
 router.put("/:id", userController.updateUser);
 router.delete("/:id", userController.deleteUser);
 
-router.put("/profile/update", authMiddleware, userController.updateProfile);
-router.put("/profile/change-password", authMiddleware, userController.changePassword);
 router.get("/profile", authMiddleware, userController.getMyProfile);
+router.put("/profile/update", authMiddleware, userController.updateProfile);   
+router.put("/profile/change-password", authMiddleware, userController.changePassword);
 module.exports = router;
