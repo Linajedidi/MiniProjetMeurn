@@ -92,6 +92,7 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
+      _id: user._id, 
       username: user.username,
       role: user.role, 
       email: user.email,   // ⚠️ CECI EST OBLIGATOIRE
