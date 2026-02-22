@@ -8,6 +8,9 @@ import AdminLayout from './components/Sidebar';
 import UsersPage from "./pages/UsersPage";
 import Home from "./pages/home";                   
 import ProfilePage from "./pages/ProfilePage";
+import CreateCV from "./pages/CreateCV";
+
+
 
 
 function App() {
@@ -23,6 +26,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}></Route>
         <Route path="/users" element={<UsersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/create-cv" element={<CreateCV />} />
 
 
         <Route path="*" element={<Navigate to="/" replace />} />
