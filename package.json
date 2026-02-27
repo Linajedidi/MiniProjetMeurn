@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-<<<<<<< HEAD
-    "axios": "^1.13.5"
-=======
-    "jspdf": "^4.2.0"
->>>>>>> 272dd8196dc0e640da35f50dc3a855b16afeefe5
-  }
-}
