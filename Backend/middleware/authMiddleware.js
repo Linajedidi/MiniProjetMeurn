@@ -1,18 +1,16 @@
 const jwt = require("jsonwebtoken");
 const config = require("config");
 
-module.exports = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  console.log("AUTH HEADER:", authHeader); // DEBUG
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization; 
 
   if (!authHeader) {
-    return res.status(401).json({ message: "Token manquant" });
+    return res.status(401).json({ message: "Accès refusé : aucun token fourni" });
   }
 
   const parts = authHeader.split(" ");
   if (parts.length !== 2 || parts[0] !== "Bearer") {
-    return res.status(401).json({ message: "Format Authorization invalide" });
+    return res.status(401).json({ message: "Format du token invalide" });
   }
 
   const token = parts[1];
@@ -31,3 +29,6 @@ module.exports = (req, res, next) => {
     return res.status(401).json({ message: "Token invalide" });
   }
 };
+    
+
+module.exports = authMiddleware;

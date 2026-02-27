@@ -17,19 +17,19 @@ const Login = () => {
     e.preventDefault();
     setMessage("");
     setIsLoading(true);
+    
 
     try {
       const res = await axios.post("http://localhost:3001/users/login", formData);
-
+      
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data._id);
       localStorage.setItem("name", res.data.username);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("email", res.data.email);
-
+      localStorage.setItem("userId", res.data._id);
       setMessage(`Bienvenue ${res.data.username} !`);
 
-      // Redirection selon rôle (majuscules comme dans la base)
       switch (res.data.role) {
         case "ADMIN":
           navigate("/pages/AdminDashboard");
