@@ -12,6 +12,9 @@ import ProfilePage from "./pages/ProfilePage";
 import OffresPage from "./pages/OffresPage";
 import CandidatsPage from "./pages/CandidatsPage";
 import EntreprisePage from "./pages/EntreprisePage";
+import CreateCV from "./pages/CreateCV";
+
+
 
 
 function App() {
@@ -31,6 +34,11 @@ function App() {
         <Route path="/offres" element={<ProtectedRoute><OffresPage /></ProtectedRoute>} />
         <Route path="/candidat" element={<ProtectedRoute><CandidatsPage /></ProtectedRoute>} />
         <Route path="/entreprise" element={<ProtectedRoute><EntreprisePage /></ProtectedRoute>} />
+        <Route path="/admin" element={<AdminLayout />}></Route>
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/create-cv" element={<CreateCV />} />
+
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
