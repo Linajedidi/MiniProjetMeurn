@@ -92,12 +92,18 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
-      _id: user._id, 
+      _id: user._id,
       username: user.username,
       role: user.role, 
       email: user.email,   
          
     });
+    console.log({
+  token: localStorage.getItem("token"),
+  userId: localStorage.getItem("userId"),
+  role: localStorage.getItem("role"),
+  name: localStorage.getItem("name"),
+});
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Erreur serveur" });

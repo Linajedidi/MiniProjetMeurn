@@ -1,39 +1,143 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import SidebarEntrep from "../components/SidebarEntrep";
+
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
+} from "@mui/material";
 
 const EntrepriseHome = () => {
   const navigate = useNavigate();
-  const username = localStorage.getItem('name') || 'Entreprise';
+  const username = localStorage.getItem("name") || "Entreprise";
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/');
-  };
+  const [candidatures, setCandidatures] = useState([]);
+  const [totalOffres, setTotalOffres] = useState(0);
+
+  useEffect(() => {
+    axios.get("http://localhost:3001/api/candidatures")
+      .then(res => setCandidatures(res.data))
+      .catch(err => console.error("Erreur chargement candidatures:", err));
+
+    axios.get("http://localhost:3001/api/offres/mes-offres", {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+    })
+      .then(res => setTotalOffres(res.data.length))
+      .catch(err => console.error("Erreur chargement offres:", err));
+  }, []);
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">Espace Entreprise</h1>
-      <div className="card shadow">
-        <div className="card-body text-center">
-          <h3>Bienvenue, {username} !</h3>
-          <p className="lead mt-4">Gestion de votre espace recruteur</p>
+    <SidebarEntrep>
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h5" gutterBottom>
+          Tableau de bord
+        </Typography>
 
-          <ul className="list-group list-group-flush mt-4">
-            <li className="list-group-item">Publier une nouvelle offre</li>
-            <li className="list-group-item">Consulter les candidatures reçues</li>
-            <li className="list-group-item">Gérer vos annonces actives</li>
-            <li className="list-group-item">Voir les profils des candidats</li>
-          </ul>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          Gérez vos offres d’emploi et vos candidats
+        </Typography>
 
-          <div className="mt-5">
-            <button className="btn btn-success btn-lg me-3">Publier une offre</button>
-            <button className="btn btn-danger btn-lg" onClick={handleLogout}>
-              Se déconnecter
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+        {/* Stats centrées et agrandies */}
+        <Grid
+          container
+          spacing={4}
+          sx={{ my: 4 }}
+          justifyContent="center"
+        >
+          <Grid item xs={12} sm={6} md={5}>
+            <Card
+              sx={{
+                bgcolor: "primary.main",
+                color: "#fff",
+                borderRadius: 3,
+                minHeight: 140,
+                display: "flex",
+                alignItems: "center"
+              }}
+            >
+              <CardContent sx={{ px: 4, py: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  Total des candidats
+                </Typography>
+                <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+                  {candidatures.length}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={5}>
+            <Card
+              sx={{
+                bgcolor: "primary.main",
+                color: "#fff",
+                borderRadius: 3,
+                minHeight: 140,
+                display: "flex",
+                alignItems: "center"
+              }}
+            >
+              <CardContent sx={{ px: 4, py: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  Offres d’emploi
+                </Typography>
+                <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+                  {totalOffres}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Tableau */}
+        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+          Liste des candidatures
+        </Typography>
+
+        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+          <Table>
+            <TableHead sx={{ bgcolor: "primary.main" }}>
+              <TableRow>
+                <TableCell sx={{ color: "#fff" }}>Nom</TableCell>
+                <TableCell sx={{ color: "#fff" }}>CV</TableCell>
+                <TableCell sx={{ color: "#fff" }}>Offre</TableCell>
+                <TableCell sx={{ color: "#fff" }}>Score</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {candidatures.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    Aucune candidature
+                  </TableCell>
+                </TableRow>
+              ) : (
+                candidatures.map(c => (
+                  <TableRow key={c._id}>
+                    <TableCell>{c.candidat?.username || "—"}</TableCell>
+                    <TableCell>{c.cv}</TableCell>
+                    <TableCell>{c.offre?.titre || "—"}</TableCell>
+                    <TableCell>{c.score}%</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </SidebarEntrep>
   );
 };
 

@@ -16,13 +16,19 @@ const authMiddleware = (req, res, next) => {
   const token = parts[1];
 
   try {
-    const decoded = jwt.verify(token, config.get("jwtSecret"));
+    const secret = config.get("jwtSecret"); 
+    console.log("JWT SECRET (config):", secret); 
 
-    req.user = decoded; 
+    const decoded = jwt.verify(token, secret);
+    console.log("DECODED TOKEN:", decoded); // DEBUG
+
+    req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Token invalide ou expiré" });
+    console.error("JWT ERROR:", err.message); // DEBUG
+    return res.status(401).json({ message: "Token invalide" });
   }
 };
+    
 
 module.exports = authMiddleware;
