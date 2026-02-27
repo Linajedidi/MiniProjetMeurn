@@ -38,7 +38,7 @@ router.post("/register", async (req, res) => {
     jwt.sign(
       payload,
       config.get("jwtSecret"),
-      { expiresIn: config.get("tokenExpire") || "7d" },
+      { expiresIn: config.get("tokenExpire") || "30d" },
       (err, token) => {
         if (err) throw err;
         res.json({
@@ -87,7 +87,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       payload,
       config.get("jwtSecret"),
-      { expiresIn: config.get("tokenExpire") || "7d" }
+      { expiresIn: config.get("tokenExpire") || "30d" }
     );
 
     res.json({
@@ -95,7 +95,7 @@ router.post("/login", async (req, res) => {
       _id: user._id, 
       username: user.username,
       role: user.role, 
-      email: user.email,   // ⚠️ CECI EST OBLIGATOIRE
+      email: user.email,   
          
     });
   } catch (err) {
