@@ -10,6 +10,9 @@ const UsersPage = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
 
+    const [currentPage, setCurrentPage] = useState(1); 
+  const usersPerPage = 5; 
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -19,7 +22,7 @@ const UsersPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/users", {
+      const res = await axios.get("http://localhost:3001/api/users", {
         params: { search, role: roleFilter }
       });
       setUsers(res.data);
@@ -29,20 +32,41 @@ const UsersPage = () => {
   };
 
   useEffect(() => {
+      setCurrentPage(1);
+
     fetchUsers();
   }, [search, roleFilter]);
 
+ 
+  const indexOfLastUser = currentPage * usersPerPage; 
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser); 
+
+  const totalPages = Math.ceil(users.length / usersPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // SAVE USER
   const handleSave = async () => {
     if (!formData.username || !formData.email || (!editingUser && !formData.password)) {
       alert("Veuillez remplir tous les champs !");
       return;
     }
+
     try {
       if (editingUser) {
-        await axios.put(`http://localhost:3001/users/${editingUser._id}`, formData);
+        const updateData = {
+          username: formData.username,
+          email: formData.email,
+          role: formData.role
+        };
+        await axios.put(`http://localhost:3001/api/users/${editingUser._id}`, updateData);
       } else {
-        await axios.post("http://localhost:3001/users", formData);
+        await axios.post("http://localhost:3001/api/users", formData);
       }
+
       setShow(false);
       setEditingUser(null);
       setFormData({ username: "", email: "", role: "CANDIDAT", password: "" });
@@ -53,14 +77,13 @@ const UsersPage = () => {
     }
   };
 
+  // DELETE USER
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Voulez-vous vraiment supprimer cet utilisateur ?"
-    );
+    const confirmDelete = window.confirm("Voulez-vous vraiment supprimer cet utilisateur ?");
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:3001/users/${id}`);
+      await axios.delete(`http://localhost:3001/api/users/${id}`);
       fetchUsers();
     } catch (err) {
       console.error("Erreur handleDelete:", err);
@@ -86,147 +109,174 @@ const UsersPage = () => {
   };
 
   return (
-      <Sidebar>
-        {/* TITRE DE LA PAGE AU-DESSUS DU TOPBAR */}
-        <h2 >
-          Gestion des utilisateurs
-        </h2>
+    <Sidebar>
 
-        {/* SEARCH + FILTER + ADD */}
-        <div className="d-flex gap-2 mb-3">
-          <input
-            className="form-control"
-            placeholder="Recherche..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select
-            className="form-select"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="">Tous les rôles</option>
-            <option value="ADMIN">Admin</option>
-            <option value="ENTREPRISE">Entreprise</option>
-            <option value="CANDIDAT">Candidat</option>
-          </select>
-          <button className="btn btn-primary" onClick={openAdd}>
-            Ajouter
-          </button>
-        </div>
+      <div className="d-flex gap-2 mb-3">
+        <input
+          className="form-control"
+          placeholder="Recherche..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="form-select"
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+        >
+          <option value="">Tous les rôles</option>
+          <option value="ADMIN">Admin</option>
+          <option value="ENTREPRISE">Entreprise</option>
+          <option value="CANDIDAT">Candidat</option>
+        </select>
+        <button className="btn btn-primary" onClick={openAdd}>
+          Ajouter
+        </button>
+      </div>
 
-        {/* TABLE */}
-        <table className="table table-bordered">
-          <thead>
+      <table className="table table-bordered">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.length === 0 ? (
             <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
+              <td colSpan="4" className="text-center">
+                Aucun utilisateur trouvé
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="text-center">
-                  Aucun utilisateur trouvé
+          ) : (
+    currentUsers.map((user) => (  
+              <tr key={user._id}>
+                <td>{user.username}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>
+                  <button
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={() => openEdit(user)}
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(user._id)}
+                  >
+                    Supprimer
+                  </button>
                 </td>
               </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user._id}>
-                  <td>{user.username}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
-                    <button
-                      className="btn btn-warning btn-sm me-2"
-                      onClick={() => openEdit(user)}
-                    >
-                      Modifier
-                    </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(user._id)}
-                    >
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
 
-        {/* MODAL */}
-        <Modal show={show} onHide={() => setShow(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>
-              {editingUser ? "Modifier Utilisateur" : "Ajouter Utilisateur"}
-            </Modal.Title>
-          </Modal.Header>
+      {users.length > usersPerPage && (
+        <div className="d-flex justify-content-center mt-3">
+          <ul className="pagination">
 
-          <Modal.Body>
-            <Form>
-              <Form.Group>
-                <Form.Label>Username</Form.Label>
-                <Form.Control
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
-                  }
-                />
-              </Form.Group>
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => paginate(currentPage - 1)}
+              >
+                Précédent
+              </button>
+            </li>
 
-              <Form.Group className="mt-2">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                />
-              </Form.Group>
-
-              <Form.Group className="mt-2">
-                <Form.Label>Role</Form.Label>
-                <Form.Select
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
+            {[...Array(totalPages)].map((_, index) => (
+              <li
+                key={index}
+                className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => paginate(index + 1)}
                 >
-                  <option value="ADMIN">Admin</option>
-                  <option value="ENTREPRISE">Entreprise</option>
-                  <option value="CANDIDAT">Candidat</option>
-                </Form.Select>
-              </Form.Group>
+                  {index + 1}
+                </button>
+              </li>
+            ))}
 
+            <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => paginate(currentPage + 1)}
+              >
+                Suivant
+              </button>
+            </li>
+
+          </ul>
+        </div>
+      )}
+
+      <Modal show={show} onHide={() => setShow(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editingUser ? "Modifier Utilisateur" : "Ajouter Utilisateur"}
+          </Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              />
+            </Form.Group>
+
+            <Form.Group className="mt-2">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </Form.Group>
+
+            <Form.Group className="mt-2">
+              <Form.Label>Role</Form.Label>
+              <Form.Select
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              >
+                <option value="ADMIN">Admin</option>
+                <option value="ENTREPRISE">Entreprise</option>
+                <option value="CANDIDAT">Candidat</option>
+              </Form.Select>
+            </Form.Group>
+
+            {/* MOT DE PASSE seulement lors de l'ajout */}
+            {!editingUser && (
               <Form.Group className="mt-2">
                 <Form.Label>Mot de passe</Form.Label>
                 <Form.Control
                   type="password"
                   value={formData.password || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Entrez un mot de passe"
                 />
               </Form.Group>
-            </Form>
-          </Modal.Body>
+            )}
+          </Form>
+        </Modal.Body>
 
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShow(false)}>
-              Annuler
-            </Button>
-            <Button variant="primary" onClick={handleSave}>
-              Sauvegarder
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </Sidebar>
-  
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow(false)}>
+            Annuler
+          </Button>
+          <Button variant="primary" onClick={handleSave}>
+            Sauvegarder
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Sidebar>
   );
 };
 

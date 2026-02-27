@@ -38,7 +38,7 @@ router.post("/register", async (req, res) => {
     jwt.sign(
       payload,
       config.get("jwtSecret"),
-      { expiresIn: config.get("tokenExpire") || "7d" },
+      { expiresIn: config.get("tokenExpire") || "30d" },
       (err, token) => {
         if (err) throw err;
         res.json({
@@ -87,17 +87,23 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       payload,
       config.get("jwtSecret"),
-      { expiresIn: config.get("tokenExpire") || "7d" }
+      { expiresIn: config.get("tokenExpire") || "30d" }
     );
 
     res.json({
       token,
-      _id: user._id, 
+      _id: user._id,
       username: user.username,
       role: user.role, 
-      email: user.email,   // ⚠️ CECI EST OBLIGATOIRE
+      email: user.email,   
          
     });
+    console.log({
+  token: localStorage.getItem("token"),
+  userId: localStorage.getItem("userId"),
+  role: localStorage.getItem("role"),
+  name: localStorage.getItem("name"),
+});
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Erreur serveur" });

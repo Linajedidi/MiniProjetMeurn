@@ -21,7 +21,6 @@ const Register = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // On nettoie les messages quand l'utilisateur modifie un champ
     setMessage("");
     setError("");
   };
@@ -32,7 +31,6 @@ const Register = () => {
     setMessage("");
     setError("");
 
-    // Validation basique côté front (optionnel mais utile)
     if (!formData.username.trim() || !formData.email || !formData.password) {
       setError("Veuillez remplir tous les champs obligatoires");
       setLoading(false);
@@ -53,12 +51,10 @@ const Register = () => {
 
       setMessage(response.data.msg || "Inscription réussie ! Vous pouvez maintenant vous connecter.");
 
-      // Option 1 : redirection automatique après 2 secondes
       setTimeout(() => {
         navigate("/");
       }, 2200);
 
-      // Option 2 : ne pas rediriger automatiquement → laisser l'utilisateur cliquer sur le lien
 
     } catch (err) {
       const errorMsg =
