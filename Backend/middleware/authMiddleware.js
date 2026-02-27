@@ -1,20 +1,33 @@
 const jwt = require("jsonwebtoken");
 const config = require("config");
 
-const authMiddleware = (req, res, next) => {
-  const JWT_SECRET = config.get("jwtSecret");
+module.exports = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-  const token = req.headers.authorization?.split(" ")[1];
+  console.log("AUTH HEADER:", authHeader); // DEBUG
 
-  if (!token) return res.status(401).json({ message: "Accès refusé" });
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token manquant" });
+  }
+
+  const parts = authHeader.split(" ");
+  if (parts.length !== 2 || parts[0] !== "Bearer") {
+    return res.status(401).json({ message: "Format Authorization invalide" });
+  }
+
+  const token = parts[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const secret = config.get("jwtSecret"); 
+    console.log("JWT SECRET (config):", secret); 
+
+    const decoded = jwt.verify(token, secret);
+    console.log("DECODED TOKEN:", decoded); // DEBUG
+
+    req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {
-    res.status(401).json({ message: "Token invalide" });
+    console.error("JWT ERROR:", err.message); // DEBUG
+    return res.status(401).json({ message: "Token invalide" });
   }
 };
-
-module.exports = authMiddleware;

@@ -1,36 +1,37 @@
 const router = require("express").Router();
 const Candidature = require("../../models/Candidature");
+const Offre = require("../../models/Offre");
 
-// ➕ Ajouter une candidature (pour test Postman)
 router.post("/", async (req, res) => {
   try {
     const { candidat, offre, cv, score } = req.body;
 
-    const newCand = new Candidature({
-      candidat,
-      offre,
-      cv,
-      score
-    });
+    
+    const offreExiste = await Offre.findById(offre);
+    if (!offreExiste) {
+      return res.status(400).json({ msg: "Offre invalide" });
+    }
 
+    const newCand = new Candidature({ candidat, offre, cv, score });
     await newCand.save();
-    res.status(201).json({ msg: "Candidature ajoutée", data: newCand });
 
+    res.status(201).json(newCand);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Erreur serveur" });
+    res.status(500).json({ msg: "Erreur serveur", err: err.message });
   }
 });
-
-// 📄 Récupérer toutes les candidatures (pour dashboard entreprise)
 router.get("/", async (req, res) => {
   try {
-    const list = await Candidature.find().populate("candidat", "username");
+    const list = await Candidature.find()
+      .populate("candidat", "username")  
+      .populate("offre", "titre");      
+
     res.json(list);
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Erreur serveur" });
   }
 });
+
 
 module.exports = router;

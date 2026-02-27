@@ -5,7 +5,7 @@ const cors=require("cors");
 const users = require("./routes/api/Users");
 const userRoutes = require("./routes/api/userRoutes"); 
 const candidaturesRoute = require("./routes/api/candidatures");
-const offresRoutes = require("./routes/api/offres");
+const offreRoutes = require("./routes/api/offreRoutes");
 
 
 
@@ -20,7 +20,8 @@ mongoose.connect(mongo_url).then(()=>console.log("MongoDBconnected...")).catch((
 app.use("/users",users);
 app.use("/users", userRoutes);
 app.use("/api/candidatures", candidaturesRoute);
-app.use("/api/offres", offresRoutes);
+app.use("/api", offreRoutes);
+
 
 
 

@@ -1,100 +1,112 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import SidebarEntrep from "../components/SidebarEntrep";
 
-const CreateOffre = () => {
-  const [titre, setTitre] = useState("");
-  const [localisation, setLocalisation] = useState("");
-  const [description, setDescription] = useState("");
-  const [entreprise, setEntreprise] = useState("");
-  const [message, setMessage] = useState("");
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Grid
+} from "@mui/material";
+
+function CreateOffre() {
+  const [open, setOpen] = useState(true);
+  const [form, setForm] = useState({
+    titre: "",
+    localisation: "",
+    description: ""
+  });
+
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    navigate("/pages/MesOffresEntr");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validation simple
-    if (!titre || !localisation || !description || !entreprise) {
-      setMessage("Tous les champs sont obligatoires !");
-      return;
-    }
-
     try {
-      const token = localStorage.getItem("token"); // récupère le token
-
-      const res = await axios.post(
-        "http://localhost:3001/api/offres", // <- URL CORRECTE
-        { titre, localisation, description, entreprise },
-        {
-          headers: {
-            "x-auth-token": token,
-          },
+      await axios.post("http://localhost:3001/api/offres", form, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
         }
-      );
-
-      setMessage(res.data.msg); // affiche "Offre créée avec succès"
-      console.log("Offre créée :", res.data.data);
-
-      // Réinitialiser le formulaire
-      setTitre("");
-      setLocalisation("");
-      setDescription("");
-      setEntreprise("");
-
+      });
+      navigate("/pages/MesOffresEntr");
     } catch (err) {
-      console.error("Erreur création offre:", err.response?.data || err.message);
-      setMessage(err.response?.data?.msg || "Erreur serveur");
+      console.error(err);
+      alert("Erreur lors de la création de l’offre");
     }
   };
 
   return (
-    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-      <h2>Créer une Offre</h2>
-      {message && <p style={{ color: "red" }}>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "10px" }}>
-          <label>Titre :</label>
-          <input
-            type="text"
-            value={titre}
-            onChange={(e) => setTitre(e.target.value)}
-            className="form-control"
-          />
-        </div>
+    <SidebarEntrep>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ textAlign: "center", color: "#1d9bf0" }}>
+          Créez votre publication
+        </DialogTitle>
 
-        <div style={{ marginBottom: "10px" }}>
-          <label>Localisation :</label>
-          <input
-            type="text"
-            value={localisation}
-            onChange={(e) => setLocalisation(e.target.value)}
-            className="form-control"
-          />
-        </div>
+        <DialogContent>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Titre de poste"
+                  name="titre"
+                  value={form.titre}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                />
+              </Grid>
 
-        <div style={{ marginBottom: "10px" }}>
-          <label>Description :</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="form-control"
-          />
-        </div>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Localisation"
+                  name="localisation"
+                  value={form.localisation}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                />
+              </Grid>
 
-        <div style={{ marginBottom: "10px" }}>
-          <label>Entreprise :</label>
-          <input
-            type="text"
-            value={entreprise}
-            onChange={(e) => setEntreprise(e.target.value)}
-            className="form-control"
-          />
-        </div>
+              <Grid item xs={12}>
+                <TextField
+                  label="Description"
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  fullWidth
+                  multiline
+                  rows={4}
+                  required
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
 
-        <button type="submit" className="btn btn-primary">
-          Ajouter l'Offre
-        </button>
-      </form>
-    </div>
+        <DialogActions sx={{ justifyContent: "center", pb: 3 }}>
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            Créer
+          </Button>
+          <Button variant="outlined" onClick={handleClose}>
+            Annuler
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </SidebarEntrep>
   );
-};
+}
 
 export default CreateOffre;

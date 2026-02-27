@@ -1,17 +1,34 @@
 import React from 'react';
 import { 
   FaTachometerAlt, 
-  
   FaBriefcase, 
   FaUserTie, 
   FaUser, 
   FaSignOutAlt 
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const SidebarEntrep = ({ children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const username = localStorage.getItem('name') || 'Entreprise';
+
+  // 🔹 Définition des routes + titres
+  const menuItems = [
+    { label: "Tableau de bord", path: "/pages/EntrepriseHome", icon: <FaTachometerAlt /> },
+    { label: "Mes Offres", path: "/pages/MesOffresEntr", icon: <FaBriefcase /> },
+    { label: "Candidats", path: "/candidats", icon: <FaUserTie /> },
+    { label: "Notifications", path: "/Notifications", icon: <FaBriefcase /> },
+    { label: "Profile", path: "/Profile", icon: <FaUser /> },
+  ];
+
+  // 🔹 Déterminer le menu actif
+  const isActive = (path) => location.pathname.startsWith(path);
+
+  // 🔹 Déterminer le titre dynamique
+  const currentTitle =
+    menuItems.find(item => location.pathname.startsWith(item.path))?.label
+    || "Tableau de bord";
 
   const menuStyle = (active = false) => ({
     padding: '15px 20px',
@@ -45,21 +62,15 @@ const SidebarEntrep = ({ children }) => {
           </h3>
 
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={menuStyle(true)} onClick={() => navigate('/pages/EntrepriseHome')}>
-              <FaTachometerAlt /> Tableau de bord
-            </li>
-            <li style={menuStyle()} onClick={() => navigate('/MesoffresEnt')}>
-              <FaBriefcase /> Mes Offres
-            </li>
-            <li style={menuStyle()} onClick={() => navigate('/candidats')}>
-              <FaUserTie /> Candidats
-            </li>
-            <li style={menuStyle()} onClick={() => navigate('/Notifications')}>
-              <FaBriefcase /> Notifications
-            </li>
-            <li style={menuStyle()} onClick={() => navigate('/Profile')}>
-              <FaUser /> Profile
-            </li>
+            {menuItems.map(item => (
+              <li
+                key={item.path}
+                style={menuStyle(isActive(item.path))}
+                onClick={() => navigate(item.path)}
+              >
+                {item.icon} {item.label}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -85,7 +96,7 @@ const SidebarEntrep = ({ children }) => {
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, backgroundColor: '#f4f6f9' }}>
 
-        {/* TOPBAR BLEU */}
+        {/* TOPBAR */}
         <div style={{
           backgroundColor: '#1e73be',
           color: 'white',
@@ -95,19 +106,15 @@ const SidebarEntrep = ({ children }) => {
           alignItems: 'center',
           boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
         }}>
-          <h3 style={{ margin: 0 }}>Tableau de bord</h3>
+          {/* 🔥 TITRE DYNAMIQUE */}
+          <h3 style={{ margin: 0 }}>{currentTitle}</h3>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span>{username}</span>
-           {/*  <img
-              src="https://i.pravatar.cc/40"
-              alt="admin"
-              style={{ borderRadius: '50%' }}
-            /> */}
           </div>
         </div>
 
-        {/* CONTENT DYNAMIQUE */}
+        {/* CONTENT */}
         <div style={{ padding: '30px' }}>
           {children}
         </div>
