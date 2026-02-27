@@ -6,13 +6,16 @@ import DashboardLayout from "../components/Sidebar";
 const BASE_URL = "http://localhost:3001/api/users"; 
 
 const ProfilePage = () => {
-  const [user, setUser] = useState({ username: "", email: "" });
+  const [user, setUser] = useState({ username: "", email: "", profileImage: "" });
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [updateLoading, setUpdateLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -28,9 +31,18 @@ const ProfilePage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setUser({ username: res.data.username, email: res.data.email });
+       
+        setUser({ 
+          username: res.data.username, 
+          email: res.data.email, 
+          profileImage: res.data.profileImage 
+        });
+        
         localStorage.setItem("name", res.data.username);
         localStorage.setItem("email", res.data.email);
+        localStorage.setItem("profileImage", res.data.profileImage || "");
+        
+        window.dispatchEvent(new Event('storage'));
       } catch (err) {
         console.error("Erreur chargement profil :", err);
         setErrorMsg(err.response?.data?.message || "Impossible de charger le profil.");
@@ -42,7 +54,81 @@ const ProfilePage = () => {
     fetchProfile();
   }, []);
 
-  // Mise à jour du profil
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+      return "http://localhost:3001/uploads/avatar.png";
+    }
+    
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    if (imagePath === "avatar.png" || imagePath === "uploads/avatar.png") {
+      return "http://localhost:3001/uploads/avatar.png";
+    }
+    
+    
+    const cleanPath = imagePath.replace(/^\/+/, '');
+    return `http://localhost:3001/${cleanPath}`;
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setSelectedImage(file);
+    setPreviewImage(URL.createObjectURL(file));
+  };
+
+  const handleCancelImage = () => {
+    setSelectedImage(null);
+    setPreviewImage(null);
+  };
+
+  const handleSaveImage = async () => {
+    if (!selectedImage) return;
+
+    const formData = new FormData();
+    formData.append("image", selectedImage);
+
+    try {
+      setImageLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.put(
+        `${BASE_URL}/profile/upload-image`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+
+      setUser((prev) => ({
+        ...prev,
+        profileImage: res.data.profileImage
+      }));
+      
+      localStorage.setItem("profileImage", res.data.profileImage);
+      
+      window.dispatchEvent(new Event('storage'));
+
+      setSelectedImage(null);
+      setPreviewImage(null);
+
+      alert("Image mise à jour avec succès ✓");
+
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Erreur lors de l'upload de l'image");
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
   const handleProfileUpdate = async () => {
     if (!user.username.trim() || !user.email.trim()) {
       alert("Nom d'utilisateur et email sont obligatoires");
@@ -60,9 +146,17 @@ const ProfilePage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setUser({ username: res.data.username, email: res.data.email });
+      setUser((prev) => ({ 
+        username: res.data.username, 
+        email: res.data.email,
+        profileImage: res.data.profileImage || prev.profileImage 
+      }));
+      
       localStorage.setItem("name", res.data.username);
       localStorage.setItem("email", res.data.email);
+      
+      window.dispatchEvent(new Event('storage'));
+      
       alert("Profil mis à jour avec succès ✓");
     } catch (err) {
       console.error("Erreur mise à jour :", err);
@@ -72,7 +166,6 @@ const ProfilePage = () => {
     }
   };
 
-  // Changer le mot de passe
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       alert("Les mots de passe ne correspondent pas");
@@ -125,6 +218,62 @@ const ProfilePage = () => {
         {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
 
         <div className="card shadow-sm p-4">
+          <div className="text-center mb-4">
+            <label style={{ cursor: "pointer" }}>
+              <img
+                src={previewImage || getImageUrl(user.profileImage)}
+                alt="profile"
+                style={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "3px solid #1e73be"
+                }}
+                onError={(e) => {
+                  // En cas d'erreur de chargement, on affiche l'avatar par défaut
+                  e.target.onerror = null;
+                  e.target.src = "http://localhost:3001/uploads/avatar.png";
+                }}
+              />
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageSelect}
+              />
+            </label>
+            <div className="mt-2 text-muted small">
+              Cliquez sur l'image pour la modifier
+            </div>
+
+            {selectedImage && (
+              <div className="mt-3 d-flex justify-content-center gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCancelImage}
+                  disabled={imageLoading}
+                >
+                  Annuler
+                </Button>
+
+                <Button
+                  variant="success"
+                  size="sm"
+                  onClick={handleSaveImage}
+                  disabled={imageLoading}
+                >
+                  {imageLoading ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : (
+                    "Sauvegarder l'image"
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+          
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Nom d'utilisateur</Form.Label>
@@ -148,7 +297,7 @@ const ProfilePage = () => {
 
             <div className="d-flex gap-3 mt-4">
               <Button variant="primary" onClick={handleProfileUpdate} disabled={updateLoading}>
-                {updateLoading ? <Spinner animation="border" size="sm" /> : "Sauvegarder"}
+                {updateLoading ? <Spinner animation="border" size="sm" /> : "Sauvegarder les modifications"}
               </Button>
 
               <Button variant="outline-warning" onClick={() => setShowPasswordModal(true)} disabled={passwordLoading}>
@@ -203,7 +352,7 @@ const ProfilePage = () => {
               Annuler
             </Button>
             <Button variant="primary" onClick={handleChangePassword} disabled={passwordLoading}>
-              {passwordLoading ? <Spinner animation="border" size="sm" /> : "Modifier"}
+              {passwordLoading ? <Spinner animation="border" size="sm" /> : "Modifier le mot de passe"}
             </Button>
           </Modal.Footer>
         </Modal>

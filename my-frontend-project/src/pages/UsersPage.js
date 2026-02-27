@@ -10,6 +10,9 @@ const UsersPage = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
 
+    const [currentPage, setCurrentPage] = useState(1); 
+  const usersPerPage = 5; 
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -29,8 +32,21 @@ const UsersPage = () => {
   };
 
   useEffect(() => {
+      setCurrentPage(1);
+
     fetchUsers();
   }, [search, roleFilter]);
+
+ 
+  const indexOfLastUser = currentPage * usersPerPage; 
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser); 
+
+  const totalPages = Math.ceil(users.length / usersPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   // SAVE USER
   const handleSave = async () => {
@@ -134,7 +150,7 @@ const UsersPage = () => {
               </td>
             </tr>
           ) : (
-            users.map((user) => (
+    currentUsers.map((user) => (  
               <tr key={user._id}>
                 <td>{user.username}</td>
                 <td>{user.email}</td>
@@ -158,6 +174,46 @@ const UsersPage = () => {
           )}
         </tbody>
       </table>
+
+      {users.length > usersPerPage && (
+        <div className="d-flex justify-content-center mt-3">
+          <ul className="pagination">
+
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => paginate(currentPage - 1)}
+              >
+                Précédent
+              </button>
+            </li>
+
+            {[...Array(totalPages)].map((_, index) => (
+              <li
+                key={index}
+                className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => paginate(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              </li>
+            ))}
+
+            <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => paginate(currentPage + 1)}
+              >
+                Suivant
+              </button>
+            </li>
+
+          </ul>
+        </div>
+      )}
 
       <Modal show={show} onHide={() => setShow(false)}>
         <Modal.Header closeButton>

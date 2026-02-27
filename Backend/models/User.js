@@ -21,6 +21,11 @@ role: {
     default: "CANDIDAT" 
 },
 
+profileImage: {
+  type: String,
+  default: "http://localhost:3001/uploads/avatar.png"
+}
+
 
 
 });

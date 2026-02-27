@@ -15,6 +15,7 @@ mongoose.connect(mongo_url).then(()=>console.log("MongoDBconnected...")).catch((
 app.use("/users",users);
 app.use("/api/users", userRoutes);
 app.use("/api/stats", stats);
+app.use("/uploads", express.static("uploads"));
 
 const port =process.env.PORT || 3001;
 app.listen(port,()=>console.log(`server ranning on port ${port}`));

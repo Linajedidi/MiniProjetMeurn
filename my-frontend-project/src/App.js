@@ -20,16 +20,17 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        {/* Routes protégées */}
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/pages/AdminDashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/pages/CandidatHome" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
         <Route path="/pages/EntrepriseHome" element={<ProtectedRoute role="ENTREPRISE"><EntrepriseHome /></ProtectedRoute>} />
-        <Route path="/admin" element={<AdminLayout />}></Route>
-        <Route path="/users" element={<UsersPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/offres" element={<OffresPage />} />
-        <Route path="/candidat" element={<CandidatsPage />} />
-        <Route path="/entreprise" element={<EntreprisePage />} />
+        <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminLayout /></ProtectedRoute>} />
+        <Route path="/users" element={<ProtectedRoute role="ADMIN"><UsersPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/offres" element={<ProtectedRoute><OffresPage /></ProtectedRoute>} />
+        <Route path="/candidat" element={<ProtectedRoute><CandidatsPage /></ProtectedRoute>} />
+        <Route path="/entreprise" element={<ProtectedRoute><EntreprisePage /></ProtectedRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

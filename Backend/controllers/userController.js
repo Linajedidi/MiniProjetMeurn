@@ -143,3 +143,30 @@ exports.changePassword = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
+
+//image
+exports.uploadProfileImage = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Aucune image envoyée" });
+    }
+
+    user.profileImage = `uploads/${req.file.filename}`;
+    await user.save();
+
+    res.json({
+      message: "Image mise à jour avec succès",
+      profileImage: user.profileImage
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -13,11 +13,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const Sidebar = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation(); 
-  const username = localStorage.getItem('name') || 'Administrateur';
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
-
-
+  const [user, setUser] = useState({
+    username: localStorage.getItem("name") || "Administrateur",
+    profileImage: localStorage.getItem("profileImage") || "uploads/avatar.png"
+  });
 
   const pageTitles = {
     '/pages/AdminDashboard': 'Tableau de bord',
@@ -30,17 +31,15 @@ const Sidebar = ({ children }) => {
 
   const pageSubtitles = {
     '/pages/AdminDashboard': 'Vue générale et statistiques de la plateforme',
-    '/users': ' gestion des comptes utilisateurs',
-    '/offres': "Consultez  les offres d'emploi",
+    '/users': 'Gestion des comptes utilisateurs',
+    '/offres': "Consultez les offres d'emploi",
     '/entreprise': 'Gestion des entreprises ',
-    '/Candidat': 'Gestion des  candidats',
+    '/Candidat': 'Gestion des candidats',
     '/profile': 'Informations et paramètres de votre compte'
   };
 
   const getTitle = () => pageTitles[location.pathname] || 'Administration';
   const getSubtitle = () => pageSubtitles[location.pathname] || '';
-
- 
 
   const menuStyle = (path) => ({
     padding: '15px 20px',
@@ -55,16 +54,52 @@ const Sidebar = ({ children }) => {
     transition: '0.3s'
   });
 
-  
-
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch("http://localhost:3001/api/users/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+        setUser({
+          username: data.username || "Administrateur",
+          profileImage: data.profileImage || "uploads/avatar.png"
+        });
+        
+        localStorage.setItem("name", data.username);
+        localStorage.setItem("profileImage", data.profileImage || "uploads/avatar.png");
+      } catch (error) {
+        console.error("Erreur récupération profil:", error);
+      }
+    };
+
+    fetchProfile();
+
+    const handleStorageChange = () => {
+      setUser({
+        username: localStorage.getItem("name") || "Administrateur",
+        profileImage: localStorage.getItem("profileImage") || "uploads/avatar.png"
+      });
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -72,10 +107,15 @@ const Sidebar = ({ children }) => {
     navigate('/');
   };
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "http://localhost:3001/uploads/avatar.png";
+    if (imagePath.startsWith('http')) return imagePath;
+    return `http://localhost:3001/${imagePath.replace(/^\/+/, '')}`;
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       
-      {/* ================= SIDEBAR ================= */}
       <div style={{
         width: '250px',
         backgroundColor: '#155a96',
@@ -115,7 +155,6 @@ const Sidebar = ({ children }) => {
           </ul>
         </div>
 
-        {/* ================= DECONNEXION ================= */}
         <div
           onClick={handleLogout}
           style={{
@@ -132,10 +171,8 @@ const Sidebar = ({ children }) => {
         </div>
       </div>
 
-      {/* ================= CONTENU PRINCIPAL ================= */}
       <div style={{ flex: 1, backgroundColor: '#f4f6f9' }}>
         
-        {/* ================= TOPBAR ================= */}
         <div style={{
           backgroundColor: '#1e73be',
           color: 'white',
@@ -147,7 +184,6 @@ const Sidebar = ({ children }) => {
           position: 'relative'
         }}>
           
-          {/* TITRE + SOUS TITRE */}
           <div>
             <h3 style={{ margin: 0 }}>{getTitle()}</h3>
             <p style={{ 
@@ -159,17 +195,26 @@ const Sidebar = ({ children }) => {
             </p>
           </div>
 
-          {/* DROPDOWN PROFIL */}
           <div ref={dropdownRef} style={{ position: 'relative' }}>
             <div
               onClick={() => setDropdownOpen(!dropdownOpen)}
               style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
             >
-              <span>{username}</span>
+              <span>{user.username}</span>
               <img
-                src="https://i.pravatar.cc/40"
-                alt="admin"
-                style={{ borderRadius: '50%' }}
+                src={getImageUrl(user.profileImage)}
+                alt="profile"
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "2px solid white"
+                }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "http://localhost:3001/uploads/avatar.png";
+                }}
               />
             </div>
 
@@ -203,7 +248,6 @@ const Sidebar = ({ children }) => {
           </div>
         </div>
 
-        {/* ================= CONTENU PAGE ================= */}
         <div style={{ padding: '30px' }}>
           {children}
         </div>
