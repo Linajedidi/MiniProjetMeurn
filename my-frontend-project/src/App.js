@@ -10,7 +10,7 @@ import UsersPage from "./pages/UsersPage";
 import Home from "./pages/home";                   
 import ProfilePage from "./pages/ProfilePage";
 import MesOffresEntr from "./pages/MesOffresEntr";
-import CreateOffre from "./pages/CreateOffre.js";
+import CreateOffre from "./pages/Createoffre.js";
 import EditOffre from "./pages/EditOffre.js";
 
 
@@ -45,8 +45,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/pages/MesOffresEntr" element={<MesOffresEntr />} />
         <Route path="/pages/CreateOffre" element={<CreateOffre />} />
-        <Route path="/pages/edit-offre/:id" element={<EditOffre />} />
-       
+        <Route path="/pages/edit-offre/:id" element={<EditOffre/>} />
         <Route path="/create-cv" element={<CreateCV />} />
 
       
