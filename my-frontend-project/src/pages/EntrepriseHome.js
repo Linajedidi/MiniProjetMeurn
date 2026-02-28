@@ -26,7 +26,9 @@ const EntrepriseHome = () => {
   const [totalOffres, setTotalOffres] = useState(0);
 
   useEffect(() => {
-    axios.get("http://localhost:3001/api/candidatures")
+    axios.get("http://localhost:3001/api/candidatures/mes-candidatures", {
+  headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+})
       .then(res => setCandidatures(res.data))
       .catch(err => console.error("Erreur chargement candidatures:", err));
 

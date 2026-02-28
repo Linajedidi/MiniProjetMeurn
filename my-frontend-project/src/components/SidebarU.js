@@ -1,9 +1,9 @@
 import React from 'react';
 import { 
   FaTachometerAlt, 
-  FaUsers, 
+ 
   FaBriefcase, 
-  FaUserTie, 
+  
   FaUser, 
   FaSignOutAlt 
 } from 'react-icons/fa';

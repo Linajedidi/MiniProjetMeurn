@@ -17,7 +17,7 @@ const SidebarEntrep = ({ children }) => {
   const menuItems = [
     { label: "Tableau de bord", path: "/pages/EntrepriseHome", icon: <FaTachometerAlt /> },
     { label: "Mes Offres", path: "/pages/MesOffresEntr", icon: <FaBriefcase /> },
-    { label: "Candidats", path: "/candidats", icon: <FaUserTie /> },
+    { label: "Candidats", path: "/candidaturesPage", icon: <FaUserTie /> },
     { label: "Notifications", path: "/Notifications", icon: <FaBriefcase /> },
     { label: "Profile", path: "/Profile", icon: <FaUser /> },
   ];

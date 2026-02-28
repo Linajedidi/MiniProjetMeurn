@@ -164,7 +164,7 @@ function MesOffresEntr() {
                     <Button
                       size="small"
                       variant="contained"
-                      onClick={() => navigate(`/pages/EditOffre/${offre._id}`)}
+                      onClick={() => navigate(`/pages/edit-offre/${offre._id}`)}
                     >
                       Modifier
                     </Button>
