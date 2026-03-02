@@ -7,26 +7,68 @@ const CandidatHome = () => {
   const navigate = useNavigate();
   const username = localStorage.getItem("name") || "Candidat";
 
+  // STATES
   const [offres, setOffres] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Modal states
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Modal
   const [showModal, setShowModal] = useState(false);
   const [selectedOffre, setSelectedOffre] = useState(null);
-  const [expandedOffre, setExpandedOffre] = useState(null);
+  // SÉCURITÉ 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
-  /* =========================
-     Upload du CV
-  ========================= */
+    if (!token || role !== "CANDIDAT") {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
+
+  // CHARGER OFFRES (BACKEND SEARCH)
+  const fetchOffres = async (search = "") => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:3001/api/offres-candidat",
+        {
+          params: { search },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setOffres(res.data);
+    } catch (error) {
+      console.error("Erreur chargement offres :", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // premier chargement
+  useEffect(() => {
+    fetchOffres();
+  }, []);
+
+  // recherche avec debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchOffres(searchTerm);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // UPLOAD CV 
   const handleCVUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const userId = localStorage.getItem("userId");
-    if (!userId) {
-      alert("Utilisateur non identifié");
-      return;
-    }
+    if (!userId) return alert("Utilisateur non identifié");
 
     try {
       const check = await axios.get(
@@ -35,12 +77,9 @@ const CandidatHome = () => {
 
       if (check.data.exists) {
         const confirmReplace = window.confirm(
-          "Vous avez déjà un CV enregistré.\n\nVoulez-vous le remplacer ?"
+          "Vous avez déjà un CV enregistré.\nVoulez-vous le remplacer ?"
         );
-        if (!confirmReplace) {
-          e.target.value = null;
-          return;
-        }
+        if (!confirmReplace) return;
       }
 
       const formData = new FormData();
@@ -54,127 +93,120 @@ const CandidatHome = () => {
       );
 
       alert(res.data.message);
-    } catch (error) {
-      console.error("Erreur upload CV :", error);
+    } catch (err) {
+      console.error(err);
       alert("Erreur lors de l’import du CV");
     }
   };
 
-  /* =========================
-     Charger les offres
-  ========================= */
-  useEffect(() => {
-    const fetchOffres = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          "http://localhost:3001/api/offres-candidat",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setOffres(res.data);
-      } catch (error) {
-        console.error("Erreur chargement offres :", error);
-      } finally {
-        setLoading(false);
+  // ================== APPLY ==================
+  const handleApply = async (offreId) => {
+    const candidat = localStorage.getItem("userId");
+    if (!candidat) return alert("Utilisateur non identifié");
+
+    try {
+      const check = await axios.get(
+        `http://localhost:3001/api/cv/exists/${candidat}`
+      );
+
+      if (!check.data.exists) {
+        alert("Veuillez créer ou importer votre CV avant de postuler");
+        return;
       }
-    };
 
-    fetchOffres();
-  }, []);
+      await axios.post("http://localhost:3001/api/candidatures", {
+        candidat,
+        offre: offreId,
+        score: 0,
+      });
 
+      alert("Candidature envoyée avec succès ✅");
+    } catch (error) {
+      console.error(error);
+      alert("Erreur lors de la postulation");
+    }
+  };
+
+  // ================== RENDER ==================
   return (
     <SidebarU>
       <div className="container">
-        <div className="card shadow">
-          <div className="card-body">
-            <h4 className="mb-4">Bienvenue, {username} !</h4>
+        <h4 className="mb-4">Bienvenue, {username} !</h4>
 
-            {/* ================= CV ================= */}
-            <div className="row mt-4 justify-content-center">
-              <div className="col-md-8">
-                <div className="card text-center border-primary shadow-sm">
-                  <div className="card-body">
-                    <h3 className="card-title text-primary mb-3">Mon CV</h3>
+        {/* ================= CV ================= */}
+        <div className="card shadow mb-4">
+          <div className="card-body text-center">
+            <h3 className="text-primary mb-3">Mon CV</h3>
 
-                    <p className="card-text fs-5">
-                      Créez ou téléversez votre CV pour postuler plus rapidement
-                      aux offres qui vous intéressent.
-                    </p>
+            <div className="d-flex justify-content-center gap-3">
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={() => navigate("/create-cv")}
+              >
+                Créer mon CV
+              </button>
 
-                    <div className="d-flex justify-content-center gap-3 mt-4">
-                      <button
-                        className="btn btn-primary btn-lg"
-                        onClick={() => navigate("/create-cv")}
-                      >
-                        Créer mon CV
-                      </button>
-
-                      <button
-                        className="btn btn-outline-secondary btn-lg"
-                        onClick={() =>
-                          document.getElementById("cvUpload").click()
-                        }
-                      >
-                        Importer mon CV
-                      </button>
-                    </div>
-
-                    <input
-                      type="file"
-                      id="cvUpload"
-                      accept="application/pdf"
-                      style={{ display: "none" }}
-                      onChange={handleCVUpload}
-                    />
-                  </div>
-                </div>
-              </div>
+              <button
+                className="btn btn-outline-secondary btn-lg"
+                onClick={() => document.getElementById("cvUpload").click()}
+              >
+                Importer mon CV
+              </button>
             </div>
-            {/* ====================================== */}
+
+            <input
+              type="file"
+              id="cvUpload"
+              accept="application/pdf"
+              hidden
+              onChange={handleCVUpload}
+            />
           </div>
         </div>
-      </div>
 
-      {/* ================= Offres ================= */}
-      <div className="row mt-4">
-        <div className="col-md-12">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h4 className="mb-3 text-primary">Offres disponibles</h4>
+        {/* ================= SEARCH ================= */}
+        <div className="mb-4">
+          <input
+            type="text"
+            className="form-control"
+            placeholder=" Rechercher une offre par titre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-              {loading ? (
-                <p>Chargement des offres...</p>
-              ) : offres.length === 0 ? (
-                <p className="text-muted">
-                  Aucune offre disponible pour le moment.
-                </p>
-              ) : (
-                <div className="row">
-                  {offres.map((offre) => (
-                    <div className="col-md-4 mb-3" key={offre._id}>
-                      <div className="card h-100 border-secondary">
-                        <div className="card-body d-flex flex-column">
-                          <h5 className="card-title">{offre.titre}</h5>
-                            <p className="text-muted mb-1">
-                            📍 {offre.localisation}
-                          </p>
+        {/* ================= OFFRES ================= */}
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <h4 className="text-primary mb-3">Offres disponibles</h4>
 
-                          <p className="card-text flex-grow-1"
-                            style={{
-                              display: "-webkit-box",
-                              WebkitLineClamp: expandedOffre === offre._id ? "none" : 1,
-                              WebkitBoxOrient: "vertical",
-                              overflow: "hidden",
-                              whiteSpace: "pre-line",
-                            }}
-                          >
-                            {offre.description}
-                          </p>
+            {loading ? (
+              <p>Chargement des offres...</p>
+            ) : offres.length === 0 ? (
+              <p className="text-muted">Aucune offre trouvée</p>
+            ) : (
+              <div className="row">
+                {offres.map((offre) => (
+                  <div className="col-md-4 mb-3" key={offre._id}>
+                    <div className="card h-100">
+                      <div className="card-body d-flex flex-column">
+                        <h5>{offre.titre}</h5>
+                        <p className="text-muted">📍 {offre.localisation}</p>
 
+                        <p
+                          className="flex-grow-1"
+                          style={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {offre.description}
+                        </p>
+
+                        <div className="d-flex gap-2">
                           <button
-                            className="btn btn-outline-primary w-100"
+                            className="btn btn-outline-primary flex-fill"
                             onClick={() => {
                               setSelectedOffre(offre);
                               setShowModal(true);
@@ -182,74 +214,59 @@ const CandidatHome = () => {
                           >
                             Voir le détail
                           </button>
+
+                          <button
+                            className="btn btn-outline-success flex-fill"
+                            onClick={() => handleApply(offre._id)}
+                          >
+                            Apply
+                          </button>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* ================= MODAL ================= */}
-{showModal && selectedOffre && (
-  <>
-    <div className="modal fade show d-block" tabIndex="-1">
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content">
+      {showModal && selectedOffre && (
+        <>
+          <div className="modal fade show d-block">
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5>{selectedOffre.titre}</h5>
+                  <button
+                    className="btn-close"
+                    onClick={() => setShowModal(false)}
+                  />
+                </div>
 
-          {/* Header */}
-          <div className="modal-header">
-            <div>
-              <h5 className="modal-title mb-1">
-                {selectedOffre.titre}
-              </h5>
-              <small className="text-muted">
-                📍 {selectedOffre.localisation || selectedOffre.lieu}
-              </small>
+                <div className="modal-body">
+                  <p>{selectedOffre.description}</p>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
             </div>
-
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() => setShowModal(false)}
-            />
           </div>
-
-          {/* Body */}
           <div
-            className="modal-body"
-            style={{ maxHeight: "60vh", overflowY: "auto" }}
-          >
-            <p style={{ whiteSpace: "pre-line" }}>
-              {selectedOffre.description}
-            </p>
-          </div>
-
-          {/* Footer */}
-          <div className="modal-footer">
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowModal(false)}
-            >
-              Fermer
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    {/* Backdrop */}
-    <div
-      className="modal-backdrop fade show"
-      onClick={() => setShowModal(false)}
-    />
-  </>
-)}
-{/* ======================================== */}
+            className="modal-backdrop fade show"
+            onClick={() => setShowModal(false)}
+          />
+        </>
+      )}
     </SidebarU>
   );
 };

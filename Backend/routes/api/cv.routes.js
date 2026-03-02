@@ -2,13 +2,18 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../../middleware/uploadCV");
 const CV = require("../../models/cv");
-// 🔍 Vérifier si l'utilisateur a déjà un CV
+const path = require("path");
+const fs = require("fs");
+const auth = require("../../middleware/authMiddleware");
+//ma sta"mltch lauth lezmni nzid fel front axios khater ma ykhoch f token 
+// Vérifier si l'utilisateur a déjà un CV
 router.get("/exists/:userId", async (req, res) => {
   try {
     const cv = await CV.findOne({ user: req.params.userId });
 
     res.json({
-      exists: !!cv, // true ou false
+      exists: !!cv,
+      cvId: cv ? cv._id : null,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -42,4 +47,32 @@ router.post("/upload", upload.single("cv"), async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+router.get("/view/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const cv = await CV.findOne({ user: userId });
+    if (!cv) {
+      return res.status(404).json({ message: "CV non trouvé" });
+    }
+
+    const filePath = path.join(__dirname, "../../", cv.filePath);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Fichier CV introuvable" });
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${cv.fileName}"`
+    );
+
+    fs.createReadStream(filePath).pipe(res);
+  } catch (err) {
+    console.error("Erreur view CV :", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 module.exports = router;

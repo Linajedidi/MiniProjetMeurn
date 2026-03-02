@@ -28,6 +28,10 @@ const Login = () => {
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("email", res.data.email);
       localStorage.setItem("userId", res.data._id);
+      localStorage.setItem("profileImage",res.data.profileImage|| "");
+
+    // 🔥 notifier toute l'app (SidebarU)
+    window.dispatchEvent(new Event("userUpdated"));
       setMessage(`Bienvenue ${res.data.username} !`);
 
       switch (res.data.role) {
@@ -35,7 +39,7 @@ const Login = () => {
           navigate("/pages/AdminDashboard");
           break;
         case "CANDIDAT":
-          navigate("/pages/CandidatHome");
+          navigate("/candidate-home");
           break;
         case "ENTREPRISE":
           navigate("/pages/EntrepriseHome");

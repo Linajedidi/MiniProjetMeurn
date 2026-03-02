@@ -23,7 +23,7 @@ const CreateCV = () => {
     setCv({ ...cv, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Générer le PDF + vérifier + enregistrer
+  // ✅ Générer PDF + Télécharger + Enregistrer
   const generateAndSavePDF = async () => {
     if (!userId) {
       alert("Utilisateur non identifié");
@@ -31,20 +31,19 @@ const CreateCV = () => {
     }
 
     try {
-      // 🔍 1️⃣ Vérifier si un CV existe déjà
+      // 1️⃣ Vérifier si un CV existe déjà
       const check = await axios.get(
         `http://localhost:3001/api/cv/exists/${userId}`
       );
 
       if (check.data.exists) {
         const confirmReplace = window.confirm(
-          "Vous avez déjà un CV enregistré.\n\nVoulez-vous le remplacer ?"
+          "Vous avez déjà un CV enregistré.\nVoulez-vous le remplacer ?"
         );
-
         if (!confirmReplace) return;
       }
 
-      // 🧾 2️⃣ Génération du PDF (en mémoire)
+      // 2️⃣ Génération du PDF
       const doc = new jsPDF();
 
       doc.setFontSize(18);
@@ -75,15 +74,25 @@ const CreateCV = () => {
       doc.setFontSize(11);
       doc.text(cv.skills || "-", 20, 147);
 
-      // 🔄 3️⃣ PDF → Blob (PAS de téléchargement)
+      // 3️⃣ PDF → Blob
       const pdfBlob = doc.output("blob");
 
-      // 🔄 4️⃣ Blob → File
+      // 4️⃣ ⬇️ TÉLÉCHARGEMENT AUTOMATIQUE
+      const downloadUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = "Mon_CV.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+
+      // 5️⃣ Blob → File
       const pdfFile = new File([pdfBlob], "Mon_CV.pdf", {
         type: "application/pdf",
       });
 
-      // 📤 5️⃣ Upload vers le backend
+      // 6️⃣ Upload vers backend
       const formData = new FormData();
       formData.append("cv", pdfFile);
       formData.append("userId", userId);
@@ -94,11 +103,13 @@ const CreateCV = () => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      alert(res.data.message);
-      navigate("/pages/CandidatHome");
+      alert(res.data.message || "CV enregistré avec succès");
+
+      // 7️⃣ Redirection
+      navigate("/candidate-home");
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de l’enregistrement du CV");
+      alert("Erreur lors de la création du CV");
     }
   };
 
@@ -113,98 +124,52 @@ const CreateCV = () => {
 
               <div className="col-md-6 mb-3">
                 <label>Nom & Prénom</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  className="form-control"
-                  onChange={handleChange}
-                />
+                <input name="fullName" className="form-control" onChange={handleChange} />
               </div>
 
               <div className="col-md-6 mb-3">
                 <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  className="form-control"
-                  onChange={handleChange}
-                />
+                <input name="email" className="form-control" onChange={handleChange} />
               </div>
 
               <div className="col-md-6 mb-3">
                 <label>Téléphone</label>
-                <input
-                  type="text"
-                  name="phone"
-                  className="form-control"
-                  onChange={handleChange}
-                />
+                <input name="phone" className="form-control" onChange={handleChange} />
               </div>
 
               <div className="col-md-6 mb-3">
                 <label>Adresse</label>
-                <input
-                  type="text"
-                  name="address"
-                  className="form-control"
-                  onChange={handleChange}
-                />
+                <input name="address" className="form-control" onChange={handleChange} />
               </div>
 
               <div className="col-12 mb-3">
                 <label>Profil</label>
-                <textarea
-                  name="profile"
-                  className="form-control"
-                  rows="3"
-                  onChange={handleChange}
-                />
+                <textarea name="profile" className="form-control" rows="3" onChange={handleChange} />
               </div>
 
               <div className="col-12 mb-3">
                 <label>Expériences</label>
-                <textarea
-                  name="experience"
-                  className="form-control"
-                  rows="3"
-                  onChange={handleChange}
-                />
+                <textarea name="experience" className="form-control" rows="3" onChange={handleChange} />
               </div>
 
               <div className="col-12 mb-3">
                 <label>Formation</label>
-                <textarea
-                  name="education"
-                  className="form-control"
-                  rows="2"
-                  onChange={handleChange}
-                />
+                <textarea name="education" className="form-control" rows="2" onChange={handleChange} />
               </div>
 
               <div className="col-12 mb-3">
                 <label>Compétences</label>
-                <textarea
-                  name="skills"
-                  className="form-control"
-                  rows="2"
-                  onChange={handleChange}
-                />
+                <textarea name="skills" className="form-control" rows="2" onChange={handleChange} />
               </div>
 
             </div>
 
             <div className="text-center mt-4">
-              <button
-                className="btn btn-success btn-lg"
-                onClick={generateAndSavePDF}
-              >
-                Créer & enregistrer mon CV
+              <button className="btn btn-success btn-lg" onClick={generateAndSavePDF}>
+                Créer, télécharger & enregistrer mon CV
               </button>
 
-              <button
-                className="btn btn-secondary btn-lg ms-3"
-                onClick={() => navigate(-1)}
-              >
+              <button className="btn btn-secondary btn-lg ms-3" onClick={() => navigate(-1)}>
                 Annuler
               </button>
             </div>
@@ -215,6 +180,5 @@ const CreateCV = () => {
     </SidebarU>
   );
 };
-
 
 export default CreateCV;
