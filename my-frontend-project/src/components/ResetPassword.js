@@ -1,48 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-const Login = () => {
+const ResetPassword = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const { token } = useParams();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [validToken, setValidToken] = useState(false);
+  const [verifying, setVerifying] = useState(true);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setMessage("");
-  };
+  // Vérifier la validité du token
+  useEffect(() => {
+    const verifyToken = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/users/verify-reset-token/${token}`);
+        
+        if (response.data.valid) {
+          setValidToken(true);
+        } else {
+          setError("Ce lien de réinitialisation est invalide ou a expiré.");
+        }
+      } catch (err) {
+        setError("Ce lien de réinitialisation est invalide ou a expiré.");
+      } finally {
+        setVerifying(false);
+      }
+    };
+
+    if (token) {
+      verifyToken();
+    }
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError("Les mots de passe ne correspondent pas");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+
     setMessage("");
+    setError("");
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:3001/users/login", formData);
+      const response = await axios.post(`http://localhost:3001/users/reset-password/${token}`, {
+        password,
+        confirmPassword
+      });
       
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data._id);
-      localStorage.setItem("name", res.data.username);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("email", res.data.email);
-      setMessage(`Bienvenue ${res.data.username} !`);
-
-      switch (res.data.role) {
-        case "ADMIN":
-          navigate("/pages/AdminDashboard");
-          break;
-        case "CANDIDAT":
-          navigate("/pages/CandidatHome");
-          break;
-        case "ENTREPRISE":
-          navigate("/pages/EntrepriseHome");
-          break;
-        default:
-          navigate("/home");
+      if (response.data.success) {
+        setMessage(response.data.message);
+        // Redirection après 3 secondes
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
+      } else {
+        setError(response.data.message);
       }
     } catch (error) {
-      setMessage(error.response?.data?.msg || "Erreur de connexion");
+      setError(error.response?.data?.message || "Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }
@@ -51,8 +78,112 @@ const Login = () => {
   // Fonction pour gérer les erreurs de chargement d'image
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = "https://via.placeholder.com/280x280?text=Image+non+trouvée";
+    e.target.src = "https://via.placeholder.com/280x280?text=Réinitialisation+mot+de+passe";
   };
+
+  if (verifying) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "50px",
+              height: "50px",
+              border: "3px solid #f3f3f3",
+              borderTop: "3px solid #2D3E50",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 20px",
+            }}
+          />
+          <p style={{ color: "#6B7280" }}>Vérification du lien...</p>
+          <style>
+            {`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+        </div>
+      </div>
+    );
+  }
+
+  if (!validToken) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "1.5rem",
+          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "500px",
+            width: "100%",
+            background: "white",
+            borderRadius: "32px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+            padding: "2.5rem",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "80px",
+              height: "80px",
+              background: "#FEE2E2",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 20px",
+            }}
+          >
+            <span style={{ fontSize: "40px" }}>⚠️</span>
+          </div>
+          <h2 style={{ color: "#1F2937", marginBottom: "10px" }}>Lien invalide</h2>
+          <p style={{ color: "#6B7280", marginBottom: "30px" }}>
+            {error || "Ce lien de réinitialisation est invalide ou a expiré."}
+          </p>
+          <button
+            onClick={() => navigate("/forgot-password")}
+            style={{
+              width: "100%",
+              padding: "0.875rem",
+              background: "#2D3E50",
+              color: "white",
+              border: "none",
+              borderRadius: "12px",
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#1672ce")}
+            onMouseLeave={(e) => (e.target.style.background = "#2D3E50")}
+          >
+            Demander un nouveau lien
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -92,7 +223,6 @@ const Login = () => {
             overflow: "hidden",
           }}
         >
-          {/* Décoration de fond */}
           <div
             style={{
               position: "absolute",
@@ -116,7 +246,6 @@ const Login = () => {
             }}
           />
           
-          {/* Espace pour l'image */}
           <div
             style={{
               width: "100%",
@@ -129,7 +258,7 @@ const Login = () => {
           >
             <img
               src="http://localhost:3001/uploads/login.jpg"
-              alt="Illustration de connexion"
+              alt="Réinitialisation mot de passe"
               style={{
                 width: "100%",
                 height: "auto",
@@ -148,7 +277,7 @@ const Login = () => {
                 marginBottom: "0.5rem",
               }}
             >
-              Bienvenue
+              Nouveau mot de passe
             </h3>
             <p
               style={{
@@ -157,7 +286,7 @@ const Login = () => {
                 lineHeight: 1.5,
               }}
             >
-              Connectez-vous pour accéder à votre espace personnel
+              Choisissez un mot de passe sécurisé
             </p>
           </div>
         </div>
@@ -174,61 +303,16 @@ const Login = () => {
                 letterSpacing: "-0.3px",
               }}
             >
-              Connexion
+              Réinitialisation
             </h2>
             <p style={{ color: "#6B7280", fontSize: "0.9rem", margin: 0 }}>
-              Entrez vos identifiants pour continuer
+              Entrez votre nouveau mot de passe
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Champ Email */}
+            {/* Champ Nouveau mot de passe */}
             <div style={{ marginBottom: "1.5rem" }}>
-              <label
-                htmlFor="email"
-                style={{
-                  display: "block",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="exemple@domaine.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                style={{
-                  width: "100%",
-                  padding: "0.875rem 1rem",
-                  fontSize: "0.95rem",
-                  border: "2px solid #E5E7EB",
-                  borderRadius: "12px",
-                  outline: "none",
-                  transition: "all 0.2s",
-                  background: "#F9FAFB",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#2D3E50";
-                  e.target.style.background = "white";
-                }}
-                onBlur={(e) => {
-                  if (!e.target.value) {
-                    e.target.style.borderColor = "#E5E7EB";
-                    e.target.style.background = "#F9FAFB";
-                  }
-                }}
-              />
-            </div>
-
-            {/* Champ Mot de passe */}
-            <div style={{ marginBottom: "1rem" }}>
               <label
                 htmlFor="password"
                 style={{
@@ -239,15 +323,15 @@ const Login = () => {
                   marginBottom: "0.5rem",
                 }}
               >
-                Mot de passe
+                Nouveau mot de passe
               </label>
               <input
                 type="password"
                 id="password"
                 name="password"
                 placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{
                   width: "100%",
@@ -272,25 +356,91 @@ const Login = () => {
               />
             </div>
 
-            {/* Lien Mot de passe oublié */}
-            <div style={{ textAlign: "right", marginBottom: "1.75rem" }}>
-              <Link
-                to="/forgot-password"
+            {/* Champ Confirmer mot de passe */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label
+                htmlFor="confirmPassword"
                 style={{
-                  fontSize: "0.8rem",
-                  color: "#2D3E50",
-                  textDecoration: "none",
+                  display: "block",
+                  fontSize: "0.85rem",
                   fontWeight: 600,
-                  transition: "opacity 0.2s",
+                  color: "#374151",
+                  marginBottom: "0.5rem",
                 }}
-                onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
-                onMouseLeave={(e) => (e.target.style.opacity = "1")}
               >
-                Mot de passe oublié ? <strong>CLIQUEZ ICI</strong>
-              </Link>
+                Confirmer le mot de passe
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={{
+                  width: "100%",
+                  padding: "0.875rem 1rem",
+                  fontSize: "0.95rem",
+                  border: "2px solid #E5E7EB",
+                  borderRadius: "12px",
+                  outline: "none",
+                  transition: "all 0.2s",
+                  background: "#F9FAFB",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#2D3E50";
+                  e.target.style.background = "white";
+                }}
+                onBlur={(e) => {
+                  if (!e.target.value) {
+                    e.target.style.borderColor = "#E5E7EB";
+                    e.target.style.background = "#F9FAFB";
+                  }
+                }}
+              />
             </div>
 
-            {/* Bouton Connexion */}
+            {/* Message de succès */}
+            {message && (
+              <div
+                style={{
+                  padding: "0.875rem",
+                  borderRadius: "12px",
+                  textAlign: "center",
+                  fontSize: "0.85rem",
+                  marginBottom: "1rem",
+                  background: "#D1FAE5",
+                  color: "#065F46",
+                  border: "1px solid #A7F3D0",
+                }}
+              >
+                {message}
+                <div style={{ marginTop: "8px", fontSize: "0.75rem" }}>
+                  Redirection vers la page de connexion...
+                </div>
+              </div>
+            )}
+
+            {/* Message d'erreur */}
+            {error && (
+              <div
+                style={{
+                  padding: "0.875rem",
+                  borderRadius: "12px",
+                  textAlign: "center",
+                  fontSize: "0.85rem",
+                  marginBottom: "1rem",
+                  background: "#FEE2E2",
+                  color: "#991B1B",
+                  border: "1px solid #FECACA",
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {/* Bouton Réinitialiser */}
             <button
               type="submit"
               disabled={isLoading}
@@ -305,13 +455,12 @@ const Login = () => {
                 fontWeight: 600,
                 cursor: "pointer",
                 transition: "all 0.2s",
-                marginBottom: "1.5rem",
               }}
               onMouseEnter={(e) => {
                 if (!isLoading) e.target.style.background = "#1672ce";
               }}
               onMouseLeave={(e) => {
-                if (!isLoading) e.target.style.background = "#1672ce";
+                if (!isLoading) e.target.style.background = "#2D3E50";
               }}
             >
               {isLoading ? (
@@ -328,61 +477,16 @@ const Login = () => {
                       marginRight: "8px",
                     }}
                   />
-                  Connexion...
+                  Réinitialisation...
                 </>
               ) : (
-                "Se connecter"
+                "Réinitialiser le mot de passe"
               )}
             </button>
-
-            {/* Message d'erreur/succès */}
-            {message && (
-              <div
-                style={{
-                  padding: "0.875rem",
-                  borderRadius: "12px",
-                  textAlign: "center",
-                  fontSize: "0.85rem",
-                  marginBottom: "1rem",
-                  background: message.includes("Bienvenue") 
-                    ? "#D1FAE5" 
-                    : "#FEE2E2",
-                  color: message.includes("Bienvenue") 
-                    ? "#065F46" 
-                    : "#991B1B",
-                  border: `1px solid ${
-                    message.includes("Bienvenue") ? "#A7F3D0" : "#FECACA"
-                  }`,
-                }}
-              >
-                {message}
-              </div>
-            )}
           </form>
-
-          {/* Lien Créer un compte */}
-          <div style={{ textAlign: "center" }}>
-            <p style={{ color: "#6B7280", fontSize: "0.85rem", margin: 0 }}>
-              Pas encore de compte ?{" "}
-              <a
-                href="/register"
-                style={{
-                  color: "#2D3E50",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
-                onMouseLeave={(e) => (e.target.style.opacity = "1")}
-              >
-                Créer un compte
-              </a>
-            </p>
-          </div>
         </div>
       </div>
 
-      {/* Animation pour le spinner */}
       <style>
         {`
           @keyframes spin {
@@ -394,4 +498,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;

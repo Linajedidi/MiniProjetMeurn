@@ -1,6 +1,27 @@
 const router = require("express").Router();
+const candidatureController = require("../../controllers/candidatureController");
+const auth = require("../../middleware/authMiddleware"); // Si vous avez un middleware d'auth
+
+// Routes publiques (si nécessaire)
+// router.get("/public", candidatureController.getPublicCandidatures);
+
+// Routes protégées (avec authentification)
+router.get("/", auth, candidatureController.getAllCandidatures);
+router.get("/stats", auth, candidatureController.getCandidaturesStats);
+router.get("/:id", auth, candidatureController.getCandidatureById);
+router.get("/candidat/:candidatId", auth, candidatureController.getCandidaturesByCandidat);
+router.get("/offre/:offreId", auth, candidatureController.getCandidaturesByOffre);
+
+router.post("/", auth, candidatureController.createCandidature);
+router.put("/:id", auth, candidatureController.updateCandidature);
+router.put("/:id/score", auth, candidatureController.updateScore);
+router.delete("/:id", auth, candidatureController.deleteCandidature);
+
+module.exports = router;
+
+/* const router = require("express").Router();
 const Candidature = require("../../models/Candidature");
-const Offre = require("../../models/Offre");
+const Offre = require("../../models/offre");
 
 router.post("/", async (req, res) => {
   try {
@@ -34,4 +55,4 @@ router.get("/", async (req, res) => {
 });
 
 
-module.exports = router;
+module.exports = router; */

@@ -1,4 +1,4 @@
-const Offre = require("../models/Offre");
+const Offre = require("../models/offre");
 const Candidature = require("../models/Candidature");
 
 // CREATE
@@ -72,5 +72,36 @@ exports.deleteOffre = async (req, res) => {
     res.json({ message: "Offre supprimée" });
   } catch (err) {
     res.status(500).json({ message: "Erreur suppression", err: err.message });
+  }
+};
+
+
+
+// GET toutes les offres avec infos entreprise
+exports.getAllOffres = async (req, res) => {
+  try {
+    if (req.user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const offres = await Offre.find()
+      .populate("entreprise", "username email") 
+      .sort({ createdAt: -1 });
+
+    res.json(offres);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur récupération offres", err: err.message });
+  }
+};
+
+// GET offres publiques (sans auth)
+exports.getPublicOffres = async (req, res) => {
+  try {
+    const offres = await Offre.find()
+      .populate("entreprise", "username email")
+      .sort({ createdAt: -1 });
+    res.json(offres);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur récupération offres publiques", err: err.message });
   }
 };

@@ -24,6 +24,12 @@ role: {
 profileImage: {
   type: String,
   default: "http://localhost:3001/uploads/avatar.png"
+},
+resetPasswordToken: {
+  type: String,
+},
+resetPasswordExpire: {
+  type: Date,
 }
 
 
