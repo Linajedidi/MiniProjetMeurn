@@ -8,5 +8,7 @@ router.get("/offres/mes-offres", auth, ctrl.getMesOffres);
 router.get("/offres/:id", auth, ctrl.getOffreById);
 router.put("/offres/:id", auth, ctrl.updateOffre);
 router.delete("/offres/:id", auth, ctrl.deleteOffre);
+router.get("/offres-candidat", auth, ctrl.getOffresCandidat);
+
 
 module.exports = router;
