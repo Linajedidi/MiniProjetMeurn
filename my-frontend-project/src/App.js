@@ -13,12 +13,14 @@ import MesOffresEntr from "./pages/MesOffresEntr";
 import CreateOffre from "./pages/Createoffre.js";
 import EditOffre from "./pages/EditOffre.js";
 
-
-
 import OffresPage from "./pages/OffresPage";
 import CandidatsPage from "./pages/CandidatsPage";
 import EntreprisePage from "./pages/EntreprisePage";
 import CreateCV from "./pages/CreateCV";
+import LandingPage from "./pages/LandingPage";
+import Enter from "./pages/Enter.js"; 
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import ProfilePageC from "./pages/ProfileC";
 import DemandeC from "./pages/CandidatDemande";
 
@@ -29,8 +31,15 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LandingPage />} />
+
+        <Route path="/login" element={<Login />} />
+             <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        
         <Route path="/register" element={<Register />} />
+        <Route path="/Enter" element={<Enter />} />
+
         {/* Routes protégées */}
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/pages/AdminDashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
@@ -39,9 +48,9 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminLayout /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute role="ADMIN"><UsersPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/offres" element={<ProtectedRoute><OffresPage /></ProtectedRoute>} />
-        <Route path="/candidat" element={<ProtectedRoute><CandidatsPage /></ProtectedRoute>} />
-        <Route path="/entreprise" element={<ProtectedRoute><EntreprisePage /></ProtectedRoute>} />
+        <Route path="/offres" element={<ProtectedRoute role="ADMIN"><OffresPage /></ProtectedRoute>} />
+        <Route path="/candidat" element={<ProtectedRoute role="ADMIN"><CandidatsPage /></ProtectedRoute>} />
+        <Route path="/entreprise" element={<ProtectedRoute role="ADMIN"><EntreprisePage /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminLayout />}></Route>
         <Route path="/users" element={<UsersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
