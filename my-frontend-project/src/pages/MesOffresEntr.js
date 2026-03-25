@@ -183,6 +183,7 @@ function MesOffresEntr() {
                       variant="contained"
                       onClick={() => navigate(`/pages/edit-offre/${offre._id}`)}
                     >
+>>>>>>> main
                       Modifier
                     </Button>
 

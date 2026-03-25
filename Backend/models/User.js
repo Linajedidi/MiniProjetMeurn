@@ -28,6 +28,12 @@ profileImage: {
 competences: [{ type: String }],
 experience: { type: Number, default: 0 },
 niveau: { type: String },
+resetPasswordToken: {
+  type: String,
+},
+resetPasswordExpire: {
+  type: Date,
+}
 
 
 

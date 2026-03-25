@@ -19,36 +19,67 @@ const CreateCV = () => {
     skills: "",
   });
 
-  const handleChange = (e) => {
-    setCv({ ...cv, [e.target.name]: e.target.value });
+  const [errors, setErrors] = useState({});
+
+  // ✅ Validation
+  const validate = () => {
+    let newErrors = {};
+
+    Object.keys(cv).forEach((key) => {
+      if (!cv[key].trim()) {
+        newErrors[key] = "Ce champ est obligatoire";
+      }
+    });
+
+    // Email validation simple
+    if (cv.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cv.email)) {
+      newErrors.email = "Email invalide";
+    }
+
+    // Téléphone (8 chiffres Tunisie)
+    if (cv.phone && !/^\d{8}$/.test(cv.phone)) {
+      newErrors.phone = "Numéro invalide (8 chiffres)";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // 🔹 Générer le PDF + vérifier + enregistrer
+  // ✅ Handle change + remove error instantly
+  const handleChange = (e) => {
+    setCv({ ...cv, [e.target.name]: e.target.value });
+
+    setErrors({
+      ...errors,
+      [e.target.name]: "",
+    });
+  };
+
+  // ✅ Submit
   const generateAndSavePDF = async () => {
     if (!userId) {
       alert("Utilisateur non identifié");
       return;
     }
 
+    if (!validate()) return;
+
     try {
-      // 🔍 1️⃣ Vérifier si un CV existe déjà
       const check = await axios.get(
         `http://localhost:3001/api/cv/exists/${userId}`
       );
 
       if (check.data.exists) {
         const confirmReplace = window.confirm(
-          "Vous avez déjà un CV enregistré.\n\nVoulez-vous le remplacer ?"
+          "Vous avez déjà un CV enregistré.\nVoulez-vous le remplacer ?"
         );
-
         if (!confirmReplace) return;
       }
 
-      // 🧾 2️⃣ Génération du PDF (en mémoire)
       const doc = new jsPDF();
 
       doc.setFontSize(18);
-      doc.text(cv.fullName || "Nom Prénom", 20, 20);
+      doc.text(cv.fullName, 20, 20);
 
       doc.setFontSize(11);
       doc.text(`Email : ${cv.email}`, 20, 30);
@@ -58,49 +89,57 @@ const CreateCV = () => {
       doc.setFontSize(14);
       doc.text("Profil", 20, 55);
       doc.setFontSize(11);
-      doc.text(cv.profile || "-", 20, 62);
+      doc.text(cv.profile, 20, 62);
 
       doc.setFontSize(14);
       doc.text("Expériences", 20, 80);
       doc.setFontSize(11);
-      doc.text(cv.experience || "-", 20, 87);
+      doc.text(cv.experience, 20, 87);
 
       doc.setFontSize(14);
-      doc.text("Formation", 20, 110);
+      doc.text("Niveaux", 20, 110);
       doc.setFontSize(11);
-      doc.text(cv.education || "-", 20, 117);
+      doc.text(cv.education, 20, 117);
 
       doc.setFontSize(14);
       doc.text("Compétences", 20, 140);
       doc.setFontSize(11);
-      doc.text(cv.skills || "-", 20, 147);
+      doc.text(cv.skills, 20, 147);
 
-      // 🔄 3️⃣ PDF → Blob (PAS de téléchargement)
       const pdfBlob = doc.output("blob");
 
-      // 🔄 4️⃣ Blob → File
+      // download
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "Mon_CV.pdf";
+      link.click();
+
       const pdfFile = new File([pdfBlob], "Mon_CV.pdf", {
         type: "application/pdf",
       });
 
-      // 📤 5️⃣ Upload vers le backend
       const formData = new FormData();
       formData.append("cv", pdfFile);
       formData.append("userId", userId);
 
       const res = await axios.post(
         "http://localhost:3001/api/cv/upload",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        formData
       );
 
-      alert(res.data.message);
-      navigate("/pages/CandidatHome");
+      alert(res.data.message || "CV enregistré avec succès");
+
+      navigate("/candidate-home");
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de l’enregistrement du CV");
+      alert("Erreur lors de la création du CV");
     }
   };
+
+  // ✅ Helper UI
+  const inputClass = (field) =>
+    `form-control ${errors[field] ? "is-invalid" : ""}`;
 
   return (
     <SidebarU>
@@ -114,81 +153,85 @@ const CreateCV = () => {
               <div className="col-md-6 mb-3">
                 <label>Nom & Prénom</label>
                 <input
-                  type="text"
                   name="fullName"
-                  className="form-control"
+                  className={inputClass("fullName")}
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.fullName}</div>
               </div>
 
               <div className="col-md-6 mb-3">
                 <label>Email</label>
                 <input
-                  type="email"
                   name="email"
-                  className="form-control"
+                  className={inputClass("email")}
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.email}</div>
               </div>
 
               <div className="col-md-6 mb-3">
                 <label>Téléphone</label>
                 <input
-                  type="text"
                   name="phone"
-                  className="form-control"
+                  className={inputClass("phone")}
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.phone}</div>
               </div>
 
               <div className="col-md-6 mb-3">
                 <label>Adresse</label>
                 <input
-                  type="text"
                   name="address"
-                  className="form-control"
+                  className={inputClass("address")}
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.address}</div>
               </div>
 
               <div className="col-12 mb-3">
                 <label>Profil</label>
                 <textarea
                   name="profile"
-                  className="form-control"
+                  className={inputClass("profile")}
                   rows="3"
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.profile}</div>
               </div>
 
               <div className="col-12 mb-3">
                 <label>Expériences</label>
                 <textarea
                   name="experience"
-                  className="form-control"
+                  className={inputClass("experience")}
                   rows="3"
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.experience}</div>
               </div>
 
               <div className="col-12 mb-3">
-                <label>Formation</label>
+                <label>Niveaux</label>
                 <textarea
                   name="education"
-                  className="form-control"
+                  className={inputClass("education")}
                   rows="2"
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.education}</div>
               </div>
 
               <div className="col-12 mb-3">
                 <label>Compétences</label>
                 <textarea
                   name="skills"
-                  className="form-control"
+                  className={inputClass("skills")}
                   rows="2"
                   onChange={handleChange}
                 />
+                <div className="invalid-feedback">{errors.skills}</div>
               </div>
 
             </div>
@@ -198,7 +241,7 @@ const CreateCV = () => {
                 className="btn btn-success btn-lg"
                 onClick={generateAndSavePDF}
               >
-                Créer & enregistrer mon CV
+                Créer, télécharger & enregistrer mon CV
               </button>
 
               <button

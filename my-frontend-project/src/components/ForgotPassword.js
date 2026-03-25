@@ -1,53 +1,31 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setMessage("");
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setError("");
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:3001/users/login", formData);
+      const res = await axios.post("http://localhost:3001/users/forgot-password", { email });
       
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data._id);
-      localStorage.setItem("name", res.data.username);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("email", res.data.email);
-      localStorage.setItem("userId", res.data._id);
-      localStorage.setItem("profileImage",res.data.profileImage|| "");
-
-    // 🔥 notifier toute l'app (SidebarU)
-    window.dispatchEvent(new Event("userUpdated"));
-      setMessage(`Bienvenue ${res.data.username} !`);
-
-      switch (res.data.role) {
-        case "ADMIN":
-          navigate("/pages/AdminDashboard");
-          break;
-        case "CANDIDAT":
-          navigate("/candidate-home");
-          break;
-        case "ENTREPRISE":
-          navigate("/pages/EntrepriseHome");
-          break;
-        default:
-          navigate("/home");
+      if (res.data.success) {
+        setMessage(res.data.message);
+        setEmail(""); // Vider le champ email
+      } else {
+        setError(res.data.message);
       }
     } catch (error) {
-      setMessage(error.response?.data?.msg || "Erreur de connexion");
+      setError(error.response?.data?.message || "Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +34,7 @@ const Login = () => {
   // Fonction pour gérer les erreurs de chargement d'image
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = "https://via.placeholder.com/280x280?text=Image+non+trouvée";
+    e.target.src = "https://via.placeholder.com/280x280?text=Mot+de+passe+oublié";
   };
 
   return (
@@ -134,7 +112,7 @@ const Login = () => {
           >
             <img
               src="http://localhost:3001/uploads/login.jpg"
-              alt="Illustration de connexion"
+              alt="Mot de passe oublié"
               style={{
                 width: "100%",
                 height: "auto",
@@ -153,7 +131,7 @@ const Login = () => {
                 marginBottom: "0.5rem",
               }}
             >
-              Bienvenue
+              Besoin d'aide ?
             </h3>
             <p
               style={{
@@ -162,7 +140,7 @@ const Login = () => {
                 lineHeight: 1.5,
               }}
             >
-              Connectez-vous pour accéder à votre espace personnel
+              Entrez votre email pour recevoir un lien de réinitialisation
             </p>
           </div>
         </div>
@@ -179,10 +157,10 @@ const Login = () => {
                 letterSpacing: "-0.3px",
               }}
             >
-              Connexion
+              Mot de passe oublié
             </h2>
             <p style={{ color: "#6B7280", fontSize: "0.9rem", margin: 0 }}>
-              Entrez vos identifiants pour continuer
+              Nous vous enverrons un lien pour réinitialiser votre mot de passe
             </p>
           </div>
 
@@ -206,8 +184,8 @@ const Login = () => {
                 id="email"
                 name="email"
                 placeholder="exemple@domaine.com"
-                value={formData.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{
                   width: "100%",
@@ -232,70 +210,43 @@ const Login = () => {
               />
             </div>
 
-            {/* Champ Mot de passe */}
-            <div style={{ marginBottom: "1rem" }}>
-              <label
-                htmlFor="password"
+            {/* Message de succès */}
+            {message && (
+              <div
                 style={{
-                  display: "block",
+                  padding: "0.875rem",
+                  borderRadius: "12px",
+                  textAlign: "center",
                   fontSize: "0.85rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                  marginBottom: "0.5rem",
+                  marginBottom: "1rem",
+                  background: "#D1FAE5",
+                  color: "#065F46",
+                  border: "1px solid #A7F3D0",
                 }}
               >
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
+                {message}
+              </div>
+            )}
+
+            {/* Message d'erreur */}
+            {error && (
+              <div
                 style={{
-                  width: "100%",
-                  padding: "0.875rem 1rem",
-                  fontSize: "0.95rem",
-                  border: "2px solid #E5E7EB",
+                  padding: "0.875rem",
                   borderRadius: "12px",
-                  outline: "none",
-                  transition: "all 0.2s",
-                  background: "#F9FAFB",
+                  textAlign: "center",
+                  fontSize: "0.85rem",
+                  marginBottom: "1rem",
+                  background: "#FEE2E2",
+                  color: "#991B1B",
+                  border: "1px solid #FECACA",
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#2D3E50";
-                  e.target.style.background = "white";
-                }}
-                onBlur={(e) => {
-                  if (!e.target.value) {
-                    e.target.style.borderColor = "#E5E7EB";
-                    e.target.style.background = "#F9FAFB";
-                  }
-                }}
-              />
-            </div>
-
-            {/* Lien Mot de passe oublié */}
-            <div style={{ textAlign: "right", marginBottom: "1.75rem" }}>
-              <Link
-                to="/forgot-password"
-                style={{
-                  fontSize: "0.8rem",
-                  color: "#2D3E50",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
-                onMouseLeave={(e) => (e.target.style.opacity = "1")}
               >
-                Mot de passe oublié ? <strong>CLIQUEZ ICI</strong>
-              </Link>
-            </div>
+                {error}
+              </div>
+            )}
 
-            {/* Bouton Connexion */}
+            {/* Bouton Envoyer */}
             <button
               type="submit"
               disabled={isLoading}
@@ -310,13 +261,13 @@ const Login = () => {
                 fontWeight: 600,
                 cursor: "pointer",
                 transition: "all 0.2s",
-                marginBottom: "1.5rem",
+                marginBottom: "1rem",
               }}
               onMouseEnter={(e) => {
                 if (!isLoading) e.target.style.background = "#1672ce";
               }}
               onMouseLeave={(e) => {
-                if (!isLoading) e.target.style.background = "#1672ce";
+                if (!isLoading) e.target.style.background = "#2D3E50";
               }}
             >
               {isLoading ? (
@@ -333,57 +284,41 @@ const Login = () => {
                       marginRight: "8px",
                     }}
                   />
-                  Connexion...
+                  Envoi en cours...
                 </>
               ) : (
-                "Se connecter"
+                "Envoyer le lien"
               )}
             </button>
 
-            {/* Message d'erreur/succès */}
-            {message && (
-              <div
-                style={{
-                  padding: "0.875rem",
-                  borderRadius: "12px",
-                  textAlign: "center",
-                  fontSize: "0.85rem",
-                  marginBottom: "1rem",
-                  background: message.includes("Bienvenue") 
-                    ? "#D1FAE5" 
-                    : "#FEE2E2",
-                  color: message.includes("Bienvenue") 
-                    ? "#065F46" 
-                    : "#991B1B",
-                  border: `1px solid ${
-                    message.includes("Bienvenue") ? "#A7F3D0" : "#FECACA"
-                  }`,
-                }}
-              >
-                {message}
-              </div>
-            )}
+            {/* Bouton Retour */}
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              style={{
+                width: "100%",
+                padding: "0.875rem",
+                background: "transparent",
+                color: "#2D3E50",
+                border: "2px solid #E5E7EB",
+                borderRadius: "12px",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#F9FAFB";
+                e.target.style.borderColor = "#2D3E50";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "transparent";
+                e.target.style.borderColor = "#E5E7EB";
+              }}
+            >
+              Retour à la connexion
+            </button>
           </form>
-
-          {/* Lien Créer un compte */}
-          <div style={{ textAlign: "center" }}>
-            <p style={{ color: "#6B7280", fontSize: "0.85rem", margin: 0 }}>
-              Pas encore de compte ?{" "}
-              <a
-                href="/register"
-                style={{
-                  color: "#2D3E50",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
-                onMouseLeave={(e) => (e.target.style.opacity = "1")}
-              >
-                Créer un compte
-              </a>
-            </p>
-          </div>
         </div>
       </div>
 
@@ -399,4 +334,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ForgotPassword;
