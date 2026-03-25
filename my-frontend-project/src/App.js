@@ -24,6 +24,8 @@ import ResetPassword from "./components/ResetPassword";
 import ProfilePageC from "./pages/ProfileC";
 import DemandeC from "./pages/CandidatDemande";
 
+import CandidaturesPage from "./pages/CandidaturesPage";
+import ProfileEntreprise from "./pages/ProfileEntreprise";
 
 
 
@@ -38,6 +40,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         
         <Route path="/register" element={<Register />} />
+        
         <Route path="/Enter" element={<Enter />} />
 
         {/* Routes protégées */}
@@ -48,6 +51,10 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminLayout /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute role="ADMIN"><UsersPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/offres" element={<ProtectedRoute><OffresPage /></ProtectedRoute>} />
+        <Route path="/candidat" element={<ProtectedRoute><CandidatsPage /></ProtectedRoute>} />
+        <Route path="/entreprise" element={<ProtectedRoute><EntreprisePage /></ProtectedRoute>} />
+      <Route path="/pages/MesOffresEntr"element={<ProtectedRoute role="ENTREPRISE"><MesOffresEntr /> </ProtectedRoute>}/>
         <Route path="/offres" element={<ProtectedRoute role="ADMIN"><OffresPage /></ProtectedRoute>} />
         <Route path="/candidat" element={<ProtectedRoute role="ADMIN"><CandidatsPage /></ProtectedRoute>} />
         <Route path="/entreprise" element={<ProtectedRoute role="ADMIN"><EntreprisePage /></ProtectedRoute>} />
@@ -58,9 +65,14 @@ function App() {
         <Route path="/pages/CreateOffre" element={<CreateOffre />} />
         <Route path="/pages/edit-offre/:id" element={<EditOffre/>} />
         <Route path="/create-cv" element={<CreateCV />} />
+        <Route path="/candidaturesPage"element={<ProtectedRoute role="ENTREPRISE"><CandidaturesPage /></ProtectedRoute>}/>
+
+        <Route path="/profile-entreprise" element={ <ProtectedRoute role="ENTREPRISE"><ProfileEntreprise /> </ProtectedRoute>
+  }
+/>
 
 
-        //candidat
+        
         <Route path="/candidate-home" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
         <Route path="/ProfilePageC"element={<ProtectedRoute role="CANDIDAT"><ProfilePageC /></ProtectedRoute>}/>
         <Route path="/DemandeC" element={<ProtectedRoute role="CANDIDAT"><DemandeC /></ProtectedRoute>}/>

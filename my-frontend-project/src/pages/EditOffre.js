@@ -24,7 +24,7 @@ function EditOffre() {
       headers: { Authorization: "Bearer " + token }
     })
     .then(res => {
-      const { titre, localisation, description } = res.data;   // ✅ on extrait seulement les champs utiles
+      const { titre, localisation, description } = res.data;   
       setForm({ titre, localisation, description });
     })
     .catch(() => alert("Impossible de charger l’offre"));

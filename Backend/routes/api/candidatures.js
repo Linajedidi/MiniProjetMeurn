@@ -21,9 +21,15 @@ module.exports = router;
 
 /* const router = require("express").Router();
 const Candidature = require("../../models/Candidature");
-const Offre = require("../../models/Offre");
+const Offre = require("../../models/offre");
+const authMiddleware = require("../../middleware/authMiddleware");
+const offreController = require("../../controllers/offreController");
+
 const CV = require("../../models/cv");
 
+
+
+// POST créer candidature
 router.post("/", async (req, res) => {
   try {
     const { candidat, offre, score } = req.body;
@@ -60,18 +66,32 @@ router.post("/", async (req, res) => {
     res.status(500).json({ msg: "Erreur serveur", err: err.message });
   }
 });
+
+
+
+// GET toutes candidatures (admin/debug)
+
 router.get("/", async (req, res) => {
   try {
     const list = await Candidature.find()
-      .populate("candidat", "username")  
-      .populate("offre", "titre");      
+      .populate("candidat", "username")
+      .populate("offre", "titre");
 
     res.json(list);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ msg: "Erreur serveur" });
   }
 });
 
 
+
+//  GET candidatures entreprise connectée
+router.get(
+  "/mes-candidatures",
+  authMiddleware,
+  offreController.getCandidaturesEntreprise
+);
+
+
+module.exports = router;
 module.exports = router; */
