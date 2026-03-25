@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const Candidature = require("../../models/Candidature");
-const Offre = require("../../models/Offre");
+const Offre = require("../../models/offre");
 const authMiddleware = require("../../middleware/authMiddleware");
 const offreController = require("../../controllers/offreController");
 

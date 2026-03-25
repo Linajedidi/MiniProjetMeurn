@@ -1,4 +1,4 @@
-const Offre = require("../models/Offre");
+const Offre = require("../models/offre");
 const Candidature = require("../models/Candidature");
 
 // CREATE
@@ -82,7 +82,7 @@ exports.getCandidaturesEntreprise = async (req, res) => {
     const candidatures = await Candidature.find({
       offre: { $in: offresIds }
     })
-      .populate("candidat", "username")
+      .populate("candidat", "username email")
       .populate("offre", "titre");
 
     console.log("Candidatures trouvées:", candidatures);

@@ -7,7 +7,7 @@ const CandidatHome = () => {
   const navigate = useNavigate();
   const username = localStorage.getItem("name") || "Candidat";
 
-  // 🔹 Upload du CV avec vérification
+  // Upload du CV avec vérification
   const handleCVUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -19,7 +19,7 @@ const CandidatHome = () => {
     }
 
     try {
-      // 🔍 Vérifier si un CV existe déjà
+      
       const check = await axios.get(
         `http://localhost:3001/api/cv/exists/${userId}`
       );
@@ -30,13 +30,13 @@ const CandidatHome = () => {
         );
 
         if (!confirmReplace) {
-          // ❌ Annuler l’upload
+         
           e.target.value = null;
           return;
         }
       }
 
-      // 📤 Upload (nouveau ou remplacement)
+     
       const formData = new FormData();
       formData.append("cv", file);
       formData.append("userId", userId);
@@ -101,7 +101,7 @@ const CandidatHome = () => {
                       </button>
                     </div>
 
-                    {/* 🔹 Input caché */}
+                    {/*  Input caché */}
                     <input
                       type="file"
                       id="cvUpload"

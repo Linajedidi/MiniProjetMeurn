@@ -21,6 +21,7 @@ import EntreprisePage from "./pages/EntreprisePage";
 import CreateCV from "./pages/CreateCV";
 
 import CandidaturesPage from "./pages/CandidaturesPage";
+import ProfileEntreprise from "./pages/ProfileEntreprise";
 
 
 
@@ -30,7 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* Routes protégées */}
+        
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/pages/AdminDashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/pages/CandidatHome" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
@@ -47,6 +48,10 @@ function App() {
        
         <Route path="/create-cv" element={<CreateCV />} />
         <Route path="/candidaturesPage"element={<ProtectedRoute role="ENTREPRISE"><CandidaturesPage /></ProtectedRoute>}/>
+
+        <Route path="/profile-entreprise" element={ <ProtectedRoute role="ENTREPRISE"><ProfileEntreprise /> </ProtectedRoute>
+  }
+/>
 
       
        
