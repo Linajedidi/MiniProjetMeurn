@@ -21,6 +21,10 @@ import LandingPage from "./pages/LandingPage";
 import Enter from "./pages/Enter.js"; 
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import ProfilePageC from "./pages/ProfileC";
+import DemandeC from "./pages/CandidatDemande";
+
+
 
 
 function App() {
@@ -39,7 +43,7 @@ function App() {
         {/* Routes protégées */}
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/pages/AdminDashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/pages/CandidatHome" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
+        
         <Route path="/pages/EntrepriseHome" element={<ProtectedRoute role="ENTREPRISE"><EntrepriseHome /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminLayout /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute role="ADMIN"><UsersPage /></ProtectedRoute>} />
@@ -50,13 +54,18 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}></Route>
         <Route path="/users" element={<UsersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/pages/MesOffresEntr" element={<ProtectedRoute role="ENTREPRISE"><MesOffresEntr /></ProtectedRoute>}/>
-        <Route path="/pages/CreateOffre" element={<ProtectedRoute role="ENTREPRISE"><CreateOffre /></ProtectedRoute>}/>
-        <Route path="/pages/edit-offre/:id" element={<ProtectedRoute role="ENTREPRISE"><EditOffre /></ProtectedRoute>}/>
-       
-        <Route path="/create-cv"  element={<ProtectedRoute><CreateCV /></ProtectedRoute>}/>
-        
-     
+        <Route path="/pages/MesOffresEntr" element={<MesOffresEntr />} />
+        <Route path="/pages/CreateOffre" element={<CreateOffre />} />
+        <Route path="/pages/edit-offre/:id" element={<EditOffre/>} />
+        <Route path="/create-cv" element={<CreateCV />} />
+
+
+        //candidat
+        <Route path="/candidate-home" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
+        <Route path="/ProfilePageC"element={<ProtectedRoute role="CANDIDAT"><ProfilePageC /></ProtectedRoute>}/>
+        <Route path="/DemandeC" element={<ProtectedRoute role="CANDIDAT"><DemandeC /></ProtectedRoute>}/>
+
+
       
        
 

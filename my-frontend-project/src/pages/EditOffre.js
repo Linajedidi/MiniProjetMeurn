@@ -48,7 +48,7 @@ function EditOffre() {
   return (
     <SidebarEntrep>
       <Dialog open maxWidth="sm" fullWidth onClose={() => navigate("/pages/MesOffresEntr")}>
-        <DialogTitle>Modifier l’offre</DialogTitle>
+        <DialogTitle>Modifier loffre</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>

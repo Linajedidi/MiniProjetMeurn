@@ -77,7 +77,7 @@ exports.deleteOffre = async (req, res) => {
 
 
 
-// GET toutes les offres avec infos entreprise
+// GET toutes les offres (ADMIN)
 exports.getAllOffres = async (req, res) => {
   try {
     if (req.user.role !== "ADMIN") {
@@ -85,13 +85,35 @@ exports.getAllOffres = async (req, res) => {
     }
 
     const offres = await Offre.find()
-      .populate("entreprise", "username email") 
+      .populate("entreprise", "username email")
+      .sort({ createdAt: -1 });
+
+    res.json(offres);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur récupération", err: err.message });
+  }
+};
+
+  
+//  CANDIDAT : voir toutes les offres
+exports.getOffresCandidat = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    // filtre par titre si search existe
+    const filter = search
+      ? { titre: { $regex: search, $options: "i" } }
+      : {};
+
+    const offres = await Offre.find(filter)
+      .populate("entreprise", "name email")
       .sort({ createdAt: -1 });
 
     res.json(offres);
   } catch (err) {
     res.status(500).json({ message: "Erreur récupération offres", err: err.message });
   }
+  
 };
 
 // GET offres publiques (sans auth)
@@ -103,5 +125,10 @@ exports.getPublicOffres = async (req, res) => {
     res.json(offres);
   } catch (err) {
     res.status(500).json({ message: "Erreur récupération offres publiques", err: err.message });
+    console.error("ERREUR getOffresCandidat:", err);
+    res.status(500).json({
+      message: "Erreur récupération offres",
+      err: err.message,
+    });
   }
 };
