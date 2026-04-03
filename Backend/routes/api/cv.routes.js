@@ -5,6 +5,8 @@ const CV = require("../../models/cv");
 const path = require("path");
 const fs = require("fs");
 const auth = require("../../middleware/authMiddleware");
+const Candidature = require("../../models/Candidature");
+const computeCandidateScore = require("../../utils/scoreService");
 //ma sta"mltch lauth lezmni nzid fel front axios khater ma ykhoch f token 
 // Vérifier si l'utilisateur a déjà un CV
 router.get("/exists/:userId", async (req, res) => {
@@ -21,7 +23,9 @@ router.get("/exists/:userId", async (req, res) => {
 });
 router.post("/upload", upload.single("cv"), async (req, res) => {
   try {
-    const { userId } = req.body;
+    //const { userId } = req.body;
+    console.log("REQ BODY:", req.body); 
+    const { userId, competences, experiences, niveaux } = req.body;
 
     // 🔁 Supprimer l’ancien CV s’il existe
     const oldCV = await CV.findOne({ user: userId });
@@ -30,13 +34,28 @@ router.post("/upload", upload.single("cv"), async (req, res) => {
     }
 
     // ➕ Enregistrer le nouveau CV
-    const cv = new CV({
-      user: userId,
-      fileName: req.file.originalname,
-      filePath: req.file.path,
-    });
+   const cv = new CV({
+  user: userId,
+  fileName: req.file?.originalname,
+  filePath: req.file?.path,
+
+  competences: competences ? competences.split(",") : [],
+  experiences: experiences ? Number(experiences) : 0,
+  niveaux: niveaux || ""
+});
 
     await cv.save();
+    // 🔄 recalcul score après changement CV
+const candidatures = await Candidature.find({ candidat: userId });
+
+for (let cand of candidatures) {
+  const newScore = await computeCandidateScore(userId, cand.offre);
+
+  cand.score = newScore;
+  cand.cv = cv.filePath;
+
+  await cand.save();
+}
 
     res.status(201).json({
       message: oldCV

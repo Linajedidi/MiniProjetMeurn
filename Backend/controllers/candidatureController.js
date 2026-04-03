@@ -74,33 +74,66 @@ exports.getCandidatureById = async (req, res) => {
 // Créer une nouvelle candidature
 exports.createCandidature = async (req, res) => {
   try {
-    const { candidat, offre, cv, score } = req.body;
+    const { candidat, offre } = req.body;
 
-    // Vérifier si l'offre existe
-    const offreExiste = await Offre.findById(offre);
-    if (!offreExiste) {
-      return res.status(400).json({ msg: "Offre invalide ou inexistante" });
+    // Debug (tu peux supprimer après test)
+    console.log("CANDIDAT:", candidat);
+    console.log("OFFRE:", offre);
+
+    //  Vérifier données
+    if (!candidat || !offre) {
+      return res.status(400).json({ msg: "Données manquantes" });
     }
 
-    // Vérifier si le candidat a déjà postulé à cette offre
-    const candidatureExiste = await Candidature.findOne({ candidat, offre });
+    //  Vérifier si déjà postulé
+    const candidatureExiste = await Candidature.findOne({
+      candidat: candidat,
+      offre: offre
+    });
+
+    console.log("EXIST:", candidatureExiste);
+
     if (candidatureExiste) {
-      return res.status(400).json({ 
-        msg: "Ce candidat a déjà postulé à cette offre" 
+      return res.status(400).json({
+        msg: "Vous avez déjà postulé à cette offre"
       });
     }
 
-    const newCand = new Candidature({ 
-      candidat, 
-      offre, 
-      cv: cv || "cv.pdf", 
-      score: score || 55 
+    //  Vérifier offre
+    const offreExiste = await Offre.findById(offre);
+    if (!offreExiste) {
+      return res.status(400).json({
+        msg: "Offre invalide ou inexistante"
+      });
+    }
+
+    // ✅ Récupérer CV
+    const cvDoc = await require("../models/cv").findOne({ user: candidat });
+
+    if (!cvDoc) {
+      return res.status(400).json({
+        msg: "Aucun CV trouvé pour ce candidat"
+      });
+    }
+
+    //  Calcul score
+    const computeCandidateScore = require("../utils/scoreService");
+    const score = await computeCandidateScore(candidat, offre);
+
+    console.log("SCORE:", score);
+
+    //  Création candidature
+    const newCand = new Candidature({
+      candidat,
+      offre,
+      cv: cvDoc.filePath,
+      score
     });
-    
+
     await newCand.save();
 
-    // Récupérer la candidature avec les données populées
-    const populatedCandidature = await Candidature.findById(newCand._id)
+    //  Populate pour retour propre
+    const populated = await Candidature.findById(newCand._id)
       .populate("candidat", "username email")
       .populate({
         path: "offre",
@@ -110,16 +143,16 @@ exports.createCandidature = async (req, res) => {
         }
       });
 
-    res.status(201).json(populatedCandidature);
+    res.status(201).json(populated);
+
   } catch (err) {
     console.error("Erreur createCandidature:", err);
-    res.status(500).json({ 
-      msg: "Erreur serveur lors de la création de la candidature",
-      error: err.message 
+    res.status(500).json({
+      msg: "Erreur serveur",
+      error: err.message
     });
   }
 };
-
 // Mettre à jour une candidature
 exports.updateCandidature = async (req, res) => {
   try {

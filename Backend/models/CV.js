@@ -19,6 +19,9 @@ const CVSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  competences: [{ type: String }],
+experiences: { type: Number },
+niveaux: { type: String }
 });
 
 module.exports = mongoose.model("CV", CVSchema);

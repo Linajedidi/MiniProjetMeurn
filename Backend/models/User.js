@@ -25,15 +25,26 @@ profileImage: {
   type: String,
   default: "http://localhost:3001/uploads/avatar.png"
 },
-competences: [{ type: String }],
-experience: { type: Number, default: 0 },
-niveau: { type: String },
+
 resetPasswordToken: {
   type: String,
 },
 resetPasswordExpire: {
   type: Date,
-}
+},
+status: {
+  type: String,
+  enum: ["EN_ATTENTE", "ACCEPTE", "REFUSE"],
+  default: "EN_ATTENTE"
+},
+
+// Infos entreprise
+nomEntreprise: String,
+secteur: String,
+adresse: String,
+description: String,
+tel: String,
+codeFiscal: String,
 
 
 

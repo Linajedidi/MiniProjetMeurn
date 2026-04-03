@@ -9,7 +9,7 @@ const candidaturesRoute = require("./routes/api/candidatures");
 const offreRoutes = require("./routes/api/offreRoutes");
 const stats=require("./routes/api/stats");
 const path = require("path"); 
-
+const notificationsRoutes = require("./routes/api/notifications")
 
 const app = express();
 
@@ -22,8 +22,9 @@ app.use("/users",users);
 app.use("/api/candidatures", candidaturesRoute);
 app.use("/api", offreRoutes);
 
+app.use("/api/notifications", notificationsRoutes)
 
-
+app.use("/api/admin/entreprises", require("./routes/api/adminEntr"));
 
 
 app.use("/api/users", userRoutes);
@@ -31,7 +32,7 @@ app.use("/api/stats", stats);
 //app.use("/uploads", express.static("uploads"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-
+app.use("/api/auth", require("./routes/api/Users"));
 
 app.use("/api/cv", require("./routes/api/cv.routes"));
 

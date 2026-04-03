@@ -67,32 +67,30 @@ exports.updateOffre = async (req, res) => {
 // GET candidatures de mes offres (DEBUG VERSION)
 exports.getCandidaturesEntreprise = async (req, res) => {
   try {
-    console.log("===== DEBUG CANDIDATURES ENTREPRISE =====");
-    console.log("Entreprise connectée (req.user.id):", req.user.id);
+    console.log("===== DEBUG =====");
 
-    // 1️Récupérer les offres de cette entreprise
+    if (!req.user) {
+      console.log("❌ req.user is undefined");
+      return res.status(401).json({ message: "Non autorisé" });
+    }
+
+    console.log("User ID:", req.user.id);
+
     const offres = await Offre.find({ entreprise: req.user.id });
 
-    console.log("Offres trouvées:", offres);
-
     const offresIds = offres.map(o => o._id);
-    console.log("IDs des offres:", offresIds);
 
-    //  Récupérer les candidatures liées à ces offres
     const candidatures = await Candidature.find({
       offre: { $in: offresIds }
     })
       .populate("candidat", "username email")
       .populate("offre", "titre");
 
-    console.log("Candidatures trouvées:", candidatures);
-    
-
     res.json(candidatures);
 
   } catch (err) {
-    console.error("Erreur getCandidaturesEntreprise:", err);
-    res.status(500).json({ message: "Erreur chargement candidatures" });
+    console.error("❌ ERREUR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 

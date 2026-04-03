@@ -284,7 +284,7 @@ const CandidatsPage = () => {
                     <td style={styles.td}>
                       {candidature.cv ? (
                         <a 
-                          href={`http://localhost:3001/uploads/cv/${candidature.cv}.pdf`}
+                         href={`http://localhost:3001/${candidature.cv}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{...styles.downloadBtn, backgroundColor: '#17a2b8'}}
