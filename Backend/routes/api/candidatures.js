@@ -17,6 +17,7 @@ const User = require("../../models/User");
 
 
 
+
 router.post("/", async (req, res) => {
   try {
     const { candidat, offre, score } = req.body;
@@ -92,18 +93,10 @@ await Notification.create({
 
 
 
-//  GET candidatures entreprise 
-router.get(
-  "/mes-candidatures",
-  auth,
-  offreController.getCandidaturesEntreprise
-);
-
-
-router.get("/", async (req, res) => {
+router.get("/public", async (req, res) => {
   try {
     const list = await Candidature.find()
-  .populate("candidat", "username email") //  email 
+  .populate("candidat", "username email") 
   .populate({
     path: "offre",
     select: "titre entreprise",
@@ -138,6 +131,4 @@ router.put("/:id/score", auth, candidatureController.updateScore);
 router.delete("/:id", auth, candidatureController.deleteCandidature);
 
 module.exports = router;
-
-
 

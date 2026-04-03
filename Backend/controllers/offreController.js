@@ -176,7 +176,6 @@ exports.getOffresCandidat = async (req, res) => {
   try {
     const { search } = req.query;
 
-    // filtre par titre si search existe
     const filter = search
       ? { titre: { $regex: search, $options: "i" } }
       : {};

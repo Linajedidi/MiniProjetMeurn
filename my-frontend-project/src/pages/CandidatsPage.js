@@ -59,6 +59,7 @@ const CandidatsPage = () => {
     if (score >= 40) return '#ffc107';
     return '#dc3545';
   };
+  
 
   
   const indexOfLastCandidature = currentPage * candidaturesPerPage;
@@ -264,7 +265,6 @@ const CandidatsPage = () => {
                   <th style={styles.th}>Entreprise</th>
                   <th style={styles.th}>CV</th>
                   <th style={styles.th}>Score</th>
-                  {/*<th style={styles.th}>Date</th>      */}    
                 </tr>
               </thead>
               <tbody>
@@ -276,9 +276,9 @@ const CandidatsPage = () => {
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <td style={styles.td}>
-                      <strong>{candidature.candidat?.username || 'N/A'}</strong>
+                      <strong>{candidature.candidat?.username || candidature.candidatGoogle?.name || 'N/A'}</strong>
                     </td>
-                    <td style={styles.td}>{candidature.candidat?.email || 'N/A'}</td>
+                    <td style={styles.td}>  {candidature.candidat?.email || candidature.candidatGoogle?.email || 'N/A'}</td>
                     <td style={styles.td}>{candidature.offre?.titre || 'N/A'}</td>
                     <td style={styles.td}>{candidature.offre?.entreprise?.username || 'N/A'}</td>
                     <td style={styles.td}>
@@ -303,9 +303,7 @@ const CandidatsPage = () => {
                         {candidature.score || 0}%
                       </span>
                     </td>
-                   {/* <td style={styles.td}>
-                      {new Date(candidature.createdAt).toLocaleDateString('fr-FR')}
-                    </td>*/}
+                 
                   </tr>
                 ))}
               </tbody>
@@ -360,16 +358,3 @@ const CandidatsPage = () => {
 };
 
 export default CandidatsPage;
-/* import React from 'react';
-import Sidebar from '../components/Sidebar';
-
-const CandidatsPage = () => {
-  return (
-    <Sidebar>
-      <h2>Page des candidats</h2>
-      <p>Cette page sera développée plus tard.</p>
-    </Sidebar>
-  );
-};
-
-export default CandidatsPage; */

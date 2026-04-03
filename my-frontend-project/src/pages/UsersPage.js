@@ -77,19 +77,31 @@ const UsersPage = () => {
     }
   };
 
-  // DELETE USER
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Voulez-vous vraiment supprimer cet utilisateur ?");
-    if (!confirmDelete) return;
+  // activier desactivier USER
+  const handleToggleStatus = async (user) => {
+  const token = localStorage.getItem("token");
+  if (!token) return alert("Vous devez être connecté !");
 
-    try {
-      await axios.delete(`http://localhost:3001/api/users/${id}`);
-      fetchUsers();
-    } catch (err) {
-      console.error("Erreur handleDelete:", err);
-      alert("Impossible de supprimer l'utilisateur.");
-    }
-  };
+  try {
+    const res = await axios.put(
+      `http://localhost:3001/api/users/toggle/${user._id}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    // Mettre à jour l'état local pour changer la couleur du bouton
+    setUsers((prevUsers) =>
+      prevUsers.map((u) =>
+        u._id === user._id ? { ...u, isActive: res.data.isActive } : u
+      )
+    );
+
+    alert(res.data.message);
+  } catch (err) {
+    console.error("Erreur toggle:", err.response?.data || err.message);
+    alert(err.response?.data?.message || "Impossible de changer le statut de l'utilisateur");
+  }
+};
 
   const openEdit = (user) => {
     setEditingUser(user);
@@ -162,12 +174,14 @@ const UsersPage = () => {
                   >
                     Modifier
                   </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(user._id)}
-                  >
-                    Supprimer
-                  </button>
+                 <button
+    className={`btn btn-sm me-2 ${
+      user.isActive ? "btn-success" : "btn-danger"
+    }`}
+    onClick={() => handleToggleStatus(user)}
+  >
+    {user.isActive ? "Actif" : "Désactivé"}
+  </button>
                 </td>
               </tr>
             ))

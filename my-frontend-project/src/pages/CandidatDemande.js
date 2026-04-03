@@ -20,7 +20,7 @@ const DemandeC = () => {
 
     const fetchDemandes = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/candidatures");
+        const res = await axios.get("http://localhost:3001/api/candidatures/public");
         const mesDemandes = res.data.filter((d) => d.candidat?._id === userId);
         setDemandes(mesDemandes);
       } catch (err) {
