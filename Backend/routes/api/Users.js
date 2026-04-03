@@ -53,7 +53,7 @@ const sendResetPasswordEmail = async (email, resetToken, username) => {
 
 //registre
 router.post("/register", async (req, res) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password, role, nomEntreprise, secteur, adresse, description, tel,codeFiscal } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ status: "notok", msg: "Veuillez remplir tous les champs obligatoires" });
@@ -62,51 +62,72 @@ router.post("/register", async (req, res) => {
   try {
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ status: "notokmail", msg: "Cet email est déjà utilisé" });
+      return res.status(400).json({ msg: "Email déjà utilisé" });
     }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    //  
+    const isEntreprise = role === "ENTREPRISE";
 
     user = new User({
       username,
       email,
-      password,
-      role: role || "CANDIDAT", 
-    });
+      password: hashedPassword,
+      role: role || "CANDIDAT",
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+      // champs entreprise
+      nomEntreprise,
+      secteur,
+      adresse,
+      description,
+      tel,
+      codeFiscal,
+
+      
+      status: isEntreprise ? "EN_ATTENTE" : "ACCEPTE"
+    });
 
     await user.save();
 
+    //  ENTREPRISE → PAS DE LOGIN DIRECT
+    if (isEntreprise) {
+      return res.json({
+        status: "pending",
+        msg: "Votre demande est en attente de validation par l'administrateur"
+      });
+    }
+
+    //  CANDIDAT → LOGIN NORMAL
     const payload = {
       id: user.id,
       role: user.role,
     };
 
-    jwt.sign(
+    const token = jwt.sign(
       payload,
       config.get("jwtSecret"),
-      { expiresIn: config.get("tokenExpire") || "30d" },
-      (err, token) => {
-        if (err) throw err;
-        res.json({
-          status: "ok",
-          msg: "Inscription réussie",
-          token,
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-          },
-        });
-      }
+      { expiresIn: "30d" }
     );
+
+    res.json({
+      status: "ok",
+      msg: "Inscription réussie",
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ status: "error", msg: "Erreur serveur" });
+    res.status(500).json({ msg: "Erreur serveur" });
   }
 });
-
 //login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -117,6 +138,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
+    
     if (!user) {
       return res.status(400).json({ msg: "Utilisateur non trouvé" });
     }
@@ -132,6 +154,11 @@ router.post("/login", async (req, res) => {
     }
 
     // Sinon vérifier le mot de passe
+    if (user.role === "ENTREPRISE" && user.status !== "ACCEPTE") {
+  return res.status(403).json({
+    msg: "Compte en attente de validation admin"
+  });
+}
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {

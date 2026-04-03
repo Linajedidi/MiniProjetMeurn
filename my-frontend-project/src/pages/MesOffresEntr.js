@@ -15,14 +15,19 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  Pagination
 } from "@mui/material";
 
 function MesOffresEntr() {
   const [offres, setOffres] = useState([]);
   const [searchTitre, setSearchTitre] = useState("");
   const [searchLocalisation, setSearchLocalisation] = useState("");
-  const [sortDate, setSortDate] = useState("recent"); // recent | ancien
+  const [sortDate, setSortDate] = useState("recent");
+
+  //  Pagination
+  const [page, setPage] = useState(1);
+  const offresParPage = 6;
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -57,7 +62,7 @@ function MesOffresEntr() {
     }
   };
 
-  // 🔎 Filtres + tri
+  //  Filtres + tri
   const offresFiltrees = offres
     .filter(offre =>
       offre.titre.toLowerCase().includes(searchTitre.toLowerCase())
@@ -70,6 +75,17 @@ function MesOffresEntr() {
       const dateB = new Date(b.createdAt);
       return sortDate === "recent" ? dateB - dateA : dateA - dateB;
     });
+
+  // Calcul pagination
+  const indexOfLast = page * offresParPage;
+  const indexOfFirst = indexOfLast - offresParPage;
+  const offresActuelles = offresFiltrees.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(offresFiltrees.length / offresParPage);
+
+  //  Reset page quand filtre change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTitre, searchLocalisation, sortDate]);
 
   return (
     <SidebarEntrep>
@@ -115,14 +131,15 @@ function MesOffresEntr() {
           </FormControl>
         </Stack>
 
+        {/* Grid Offres */}
         <Grid container spacing={2}>
-          {offresFiltrees.length === 0 && (
+          {offresActuelles.length === 0 && (
             <Typography sx={{ ml: 2 }}>
               Aucune offre trouvée.
             </Typography>
           )}
 
-          {offresFiltrees.map((offre) => (
+          {offresActuelles.map((offre) => (
             <Grid item xs={12} sm={6} md={4} key={offre._id}>
               <Card sx={{ borderRadius: 3 }}>
                 <CardContent>
@@ -183,6 +200,19 @@ function MesOffresEntr() {
             </Grid>
           ))}
         </Grid>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(event, value) => setPage(value)}
+              color="primary"
+            />
+          </Box>
+        )}
+
       </Box>
     </SidebarEntrep>
   );

@@ -15,7 +15,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
+  Pagination,
+  Button
 } from "@mui/material";
 
 const EntrepriseHome = () => {
@@ -25,10 +27,14 @@ const EntrepriseHome = () => {
   const [candidatures, setCandidatures] = useState([]);
   const [totalOffres, setTotalOffres] = useState(0);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const candidaturesParPage = 5;
+
   useEffect(() => {
-    axios.get("http://localhost:3001/api/candidatures", {
-  headers: { Authorization: "Bearer " + localStorage.getItem("token") }
-})
+    axios.get("http://localhost:3001/api/candidatures/mes-candidatures", {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+    })
       .then(res => setCandidatures(res.data))
       .catch(err => console.error("Erreur chargement candidatures:", err));
 
@@ -38,6 +44,12 @@ const EntrepriseHome = () => {
       .then(res => setTotalOffres(res.data.length))
       .catch(err => console.error("Erreur chargement offres:", err));
   }, []);
+
+  // Pagination logic
+  const indexOfLast = page * candidaturesParPage;
+  const indexOfFirst = indexOfLast - candidaturesParPage;
+  const candidaturesActuelles = candidatures.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(candidatures.length / candidaturesParPage);
 
   return (
     <SidebarEntrep>
@@ -50,59 +62,28 @@ const EntrepriseHome = () => {
           Gérez vos offres d’emploi et vos candidats
         </Typography>
 
-        {/* Stats centrées et agrandies */}
-        <Grid
-          container
-          spacing={4}
-          sx={{ my: 4 }}
-          justifyContent="center"
-        >
+        {/* Stats */}
+        <Grid container spacing={4} sx={{ my: 4 }} justifyContent="center">
           <Grid item xs={12} sm={6} md={5}>
-            <Card
-              sx={{
-                bgcolor: "primary.main",
-                color: "#fff",
-                borderRadius: 3,
-                minHeight: 140,
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <CardContent sx={{ px: 4, py: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                  Total des candidats
-                </Typography>
-                <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                  {candidatures.length}
-                </Typography>
+            <Card sx={{ bgcolor: "primary.main", color: "#fff", borderRadius: 3 }}>
+              <CardContent>
+                <Typography>Total des candidats</Typography>
+                <Typography variant="h3">{candidatures.length}</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={5}>
-            <Card
-              sx={{
-                bgcolor: "primary.main",
-                color: "#fff",
-                borderRadius: 3,
-                minHeight: 140,
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <CardContent sx={{ px: 4, py: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                  Offres d’emploi
-                </Typography>
-                <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                  {totalOffres}
-                </Typography>
+            <Card sx={{ bgcolor: "primary.main", color: "#fff", borderRadius: 3 }}>
+              <CardContent>
+                <Typography>Offres d’emploi</Typography>
+                <Typography variant="h3">{totalOffres}</Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        {/* Tableau */}
+        {/* Table */}
         <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
           Liste des candidatures
         </Typography>
@@ -126,10 +107,23 @@ const EntrepriseHome = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                candidatures.map(c => (
+                candidaturesActuelles.map(c => (
                   <TableRow key={c._id}>
                     <TableCell>{c.candidat?.username || "—"}</TableCell>
-                    <TableCell>{c.cv}</TableCell>
+
+                    {/* ✅ BUTTON CV */}
+                    <TableCell>
+                      <Button
+  variant="contained"
+  size="small"
+  onClick={() =>
+    window.open(`http://localhost:3001/${c.cv}`, "_blank")
+  }
+>
+  📄 Voir CV
+</Button>
+                    </TableCell>
+
                     <TableCell>{c.offre?.titre || "—"}</TableCell>
                     <TableCell>{c.score}%</TableCell>
                   </TableRow>
@@ -138,6 +132,17 @@ const EntrepriseHome = () => {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+            />
+          </Box>
+        )}
       </Box>
     </SidebarEntrep>
   );

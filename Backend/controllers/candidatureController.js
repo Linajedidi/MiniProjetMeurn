@@ -72,6 +72,142 @@ exports.getCandidatureById = async (req, res) => {
 };
 
 
+// Créer une nouvelle candidature
+exports.createCandidature = async (req, res) => {
+  try {
+    const { candidat, offre } = req.body;
+
+    // Debug (tu peux supprimer après test)
+    console.log("CANDIDAT:", candidat);
+    console.log("OFFRE:", offre);
+
+    //  Vérifier données
+    if (!candidat || !offre) {
+      return res.status(400).json({ msg: "Données manquantes" });
+    }
+
+    //  Vérifier si déjà postulé
+    const candidatureExiste = await Candidature.findOne({
+      candidat: candidat,
+      offre: offre
+    });
+
+    console.log("EXIST:", candidatureExiste);
+
+    if (candidatureExiste) {
+      return res.status(400).json({
+        msg: "Vous avez déjà postulé à cette offre"
+      });
+    }
+
+    //  Vérifier offre
+    const offreExiste = await Offre.findById(offre);
+    if (!offreExiste) {
+      return res.status(400).json({
+        msg: "Offre invalide ou inexistante"
+      });
+    }
+
+    // ✅ Récupérer CV
+    const cvDoc = await require("../models/cv").findOne({ user: candidat });
+
+    if (!cvDoc) {
+      return res.status(400).json({
+        msg: "Aucun CV trouvé pour ce candidat"
+      });
+    }
+
+    //  Calcul score
+    const computeCandidateScore = require("../utils/scoreService");
+    const score = await computeCandidateScore(candidat, offre);
+
+    console.log("SCORE:", score);
+
+    //  Création candidature
+    const newCand = new Candidature({
+      candidat,
+      offre,
+      cv: cvDoc.filePath,
+      score
+    });
+
+    await newCand.save();
+
+    //  Populate pour retour propre
+    const populated = await Candidature.findById(newCand._id)
+      .populate("candidat", "username email")
+      .populate({
+        path: "offre",
+        populate: {
+          path: "entreprise",
+          select: "username email"
+        }
+      });
+
+    res.status(201).json(populated);
+
+  } catch (err) {
+    console.error("Erreur createCandidature:", err);
+    res.status(500).json({
+      msg: "Erreur serveur",
+      error: err.message
+    });
+  }
+};
+// Mettre à jour une candidature
+exports.updateCandidature = async (req, res) => {
+  try {
+    const { cv, score } = req.body;
+
+    const candidature = await Candidature.findByIdAndUpdate(
+      req.params.id,
+      { cv, score },
+      { new: true, runValidators: true }
+    )
+    .populate("candidat", "username email")
+    .populate({
+      path: "offre",
+      populate: {
+        path: "entreprise",
+        select: "username email"
+      }
+    });
+
+    if (!candidature) {
+      return res.status(404).json({ msg: "Candidature non trouvée" });
+    }
+
+    res.json(candidature);
+  } catch (err) {
+    console.error("Erreur updateCandidature:", err);
+    res.status(500).json({ 
+      msg: "Erreur serveur lors de la mise à jour",
+      error: err.message 
+    });
+  }
+};
+
+// Supprimer une candidature
+exports.deleteCandidature = async (req, res) => {
+  try {
+    const candidature = await Candidature.findByIdAndDelete(req.params.id);
+
+    if (!candidature) {
+      return res.status(404).json({ msg: "Candidature non trouvée" });
+    }
+
+    res.json({ 
+      msg: "Candidature supprimée avec succès",
+      deletedId: req.params.id 
+    });
+  } catch (err) {
+    console.error("Erreur deleteCandidature:", err);
+    res.status(500).json({ 
+      msg: "Erreur serveur lors de la suppression",
+      error: err.message 
+    });
+  }
+};
 
 // Récupérer les candidatures par candidat
 exports.getCandidaturesByCandidat = async (req, res) => {

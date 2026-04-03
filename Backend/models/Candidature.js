@@ -12,5 +12,6 @@ CandidatureSchema.virtual('cvUrl').get(function() {
   const cvFileName = this.cv.endsWith('.pdf') ? this.cv : `${this.cv}.pdf`;
   return `cv/${cvFileName}`;
 });
+CandidatureSchema.index({ candidat: 1, offre: 1 }, { unique: true });
 
 module.exports = mongoose.model("Candidature", CandidatureSchema);

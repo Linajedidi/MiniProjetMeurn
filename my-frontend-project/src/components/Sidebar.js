@@ -6,15 +6,20 @@ import {
   FaBuilding,   
   FaUserTie, 
   FaUser, 
-  FaSignOutAlt 
+  FaSignOutAlt,
+  FaBell
 } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from "axios";
 
 const Sidebar = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation(); 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
+
+  const [notifCount, setNotifCount] = useState(0);
+
   const [user, setUser] = useState({
     username: localStorage.getItem("name") || "Administrateur",
     profileImage: localStorage.getItem("profileImage") || "uploads/avatar.png"
@@ -25,17 +30,19 @@ const Sidebar = ({ children }) => {
     '/users': 'Gestion des utilisateurs',
     '/offres': 'Gestion des offres',
     '/entreprise': 'Gestion des entreprises',
+    '/NotifAdmin': 'Validation entreprises',
     '/Candidat': 'Gestion des candidats',
     '/profile': 'Mon profil'
   };
 
   const pageSubtitles = {
-    '/pages/AdminDashboard': 'Vue générale et statistiques de la plateforme',
+    '/pages/AdminDashboard': 'Vue générale et statistiques',
     '/users': 'Gestion des comptes utilisateurs',
-    '/offres': "Consultez les offres d'emploi",
-    '/entreprise': 'Gestion des entreprises ',
+    '/offres': "Consultez les offres",
+    '/entreprise': 'Gestion des entreprises',
+    '/NotifAdmin': 'Valider les comptes entreprises',
     '/Candidat': 'Gestion des candidats',
-    '/profile': 'Informations et paramètres de votre compte'
+    '/profile': 'Paramètres du compte'
   };
 
   const getTitle = () => pageTitles[location.pathname] || 'Administration';
@@ -46,14 +53,35 @@ const Sidebar = ({ children }) => {
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    justifyContent: 'space-between',
     backgroundColor: location.pathname === path ? '#1e73be' : 'transparent',
     color: 'white',
     fontWeight: location.pathname === path ? 'bold' : 'normal',
-    borderRadius: '5px',
-    transition: '0.3s'
+    borderRadius: '5px'
   });
 
+  // 🔔 Notifications count
+  const fetchNotifCount = async () => {
+    try {
+      const res = await axios.get("http://localhost:3001/api/admin/entreprises/count");
+      setNotifCount(res.data.count);
+    } catch (err) {
+      console.error("Erreur notif:", err);
+    }
+  };
+
+  // refresh externe
+  useEffect(() => {
+    window.refreshNotif = fetchNotifCount;
+  }, []);
+
+  useEffect(() => {
+    fetchNotifCount();
+    const interval = setInterval(fetchNotifCount, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 👤 Profil
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -65,29 +93,21 @@ const Sidebar = ({ children }) => {
         });
 
         const data = await res.json();
+
         setUser({
           username: data.username || "Administrateur",
           profileImage: data.profileImage || "uploads/avatar.png"
         });
-        
-        localStorage.setItem("name", data.username);
-        localStorage.setItem("profileImage", data.profileImage || "uploads/avatar.png");
       } catch (error) {
-        console.error("Erreur récupération profil:", error);
+        console.error(error);
       }
     };
 
     fetchProfile();
+  }, []);
 
-    const handleStorageChange = () => {
-      setUser({
-        username: localStorage.getItem("name") || "Administrateur",
-        profileImage: localStorage.getItem("profileImage") || "uploads/avatar.png"
-      });
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
+  // fermer dropdown
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
@@ -98,7 +118,6 @@ const Sidebar = ({ children }) => {
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
@@ -109,13 +128,13 @@ const Sidebar = ({ children }) => {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "http://localhost:3001/uploads/avatar.png";
-    if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:3001/${imagePath.replace(/^\/+/, '')}`;
+    return `http://localhost:3001/${imagePath}`;
   };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       
+      {/* SIDEBAR */}
       <div style={{
         width: '250px',
         backgroundColor: '#155a96',
@@ -123,56 +142,71 @@ const Sidebar = ({ children }) => {
         flexDirection: 'column',
         justifyContent: 'space-between'
       }}>
+
         <div>
-          <h3 style={{ textAlign: 'center', padding: '20px 0', color: 'white' }}>
+          <h3 style={{ textAlign: 'center', padding: '20px', color: 'white' }}>
             Admin
           </h3>
 
           <ul style={{ listStyle: 'none', padding: 0 }}>
+
             <li style={menuStyle('/pages/AdminDashboard')} onClick={() => navigate('/pages/AdminDashboard')}>
-              <FaTachometerAlt /> Tableau de bord
+              <span><FaTachometerAlt /> Tableau de bord</span>
             </li>
 
             <li style={menuStyle('/users')} onClick={() => navigate('/users')}>
-              <FaUsers /> Utilisateurs
+              <span><FaUsers /> Utilisateurs</span>
             </li>
 
             <li style={menuStyle('/offres')} onClick={() => navigate('/offres')}>
-              <FaBriefcase /> Mes Offres
+              <span><FaBriefcase /> Offres</span>
             </li>
 
             <li style={menuStyle('/entreprise')} onClick={() => navigate('/entreprise')}>
-              <FaBuilding /> Entreprise
+              <span><FaBuilding /> Entreprises</span>
+            </li>
+
+            {/* 🔔 NOTIFICATIONS */}
+            <li style={menuStyle('/NotifAdmin')} onClick={() => navigate('/NotifAdmin')}>
+              <span><FaBell /> Validation entreprises</span>
+
+              {notifCount > 0 && (
+                <span style={{
+                  backgroundColor: "red",
+                  borderRadius: "50%",
+                  padding: "4px 10px",
+                  fontSize: "12px"
+                }}>
+                  {notifCount > 99 ? "99+" : notifCount}
+                </span>
+              )}
             </li>
 
             <li style={menuStyle('/Candidat')} onClick={() => navigate('/Candidat')}>
-              <FaUserTie /> Candidats
+              <span><FaUserTie /> Candidats</span>
             </li>
 
             <li style={menuStyle('/profile')} onClick={() => navigate('/profile')}>
-              <FaUser /> Profil
+              <span><FaUser /> Profil</span>
             </li>
+
           </ul>
         </div>
 
-        <div
-          onClick={handleLogout}
-          style={{
-            padding: '15px 20px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            borderTop: '1px solid rgba(255,255,255,0.2)',
-            color: 'white'
-          }}
-        >
+        {/* LOGOUT */}
+        <div onClick={handleLogout} style={{
+          padding: '15px',
+          cursor: 'pointer',
+          color: 'white'
+        }}>
           <FaSignOutAlt /> Déconnexion
         </div>
       </div>
 
+      {/* CONTENT */}
       <div style={{ flex: 1, backgroundColor: '#f4f6f9' }}>
-        
+
+        {/* HEADER AVEC PROFIL */}
         <div style={{
           backgroundColor: '#1e73be',
           color: 'white',
@@ -180,27 +214,26 @@ const Sidebar = ({ children }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
           position: 'relative'
         }}>
-          
+
           <div>
             <h3 style={{ margin: 0 }}>{getTitle()}</h3>
-            <p style={{ 
-              margin: 0, 
-              fontSize: '14px', 
-              opacity: 0.85 
-            }}>
-              {getSubtitle()}
-            </p>
+            <p style={{ margin: 0 }}>{getSubtitle()}</p>
           </div>
 
           <div ref={dropdownRef} style={{ position: 'relative' }}>
             <div
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                cursor: 'pointer'
+              }}
             >
               <span>{user.username}</span>
+
               <img
                 src={getImageUrl(user.profileImage)}
                 alt="profile"
@@ -210,10 +243,6 @@ const Sidebar = ({ children }) => {
                   borderRadius: "50%",
                   objectFit: "cover",
                   border: "2px solid white"
-                }}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "http://localhost:3001/uploads/avatar.png";
                 }}
               />
             </div>
@@ -231,21 +260,28 @@ const Sidebar = ({ children }) => {
                 zIndex: 1000
               }}>
                 <div
-                  onClick={() => { navigate('/profile'); setDropdownOpen(false); }}
-                  style={{ padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+                  onClick={() => {
+                    navigate('/profile');
+                    setDropdownOpen(false);
+                  }}
+                  style={{ padding: '10px', cursor: 'pointer', display: 'flex', gap: '10px' }}
                 >
                   <FaUser /> Profil
                 </div>
 
                 <div
-                  onClick={() => { handleLogout(); setDropdownOpen(false); }}
-                  style={{ padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+                  onClick={() => {
+                    handleLogout();
+                    setDropdownOpen(false);
+                  }}
+                  style={{ padding: '10px', cursor: 'pointer', display: 'flex', gap: '10px' }}
                 >
                   <FaSignOutAlt /> Déconnexion
                 </div>
               </div>
             )}
           </div>
+
         </div>
 
         <div style={{ padding: '30px' }}>

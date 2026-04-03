@@ -64,14 +64,90 @@ exports.updateOffre = async (req, res) => {
   }
 };
 
+// GET candidatures de mes offres (DEBUG VERSION)
+exports.getCandidaturesEntreprise = async (req, res) => {
+  try {
+    console.log("===== DEBUG =====");
+
+    if (!req.user) {
+      console.log("❌ req.user is undefined");
+      return res.status(401).json({ message: "Non autorisé" });
+    }
+
+    console.log("User ID:", req.user.id);
+
+    const offres = await Offre.find({ entreprise: req.user.id });
+
+    const offresIds = offres.map(o => o._id);
+
+    const candidatures = await Candidature.find({
+      offre: { $in: offresIds }
+    })
+      .populate("candidat", "username email")
+      .populate("offre", "titre");
+
+    res.json(candidatures);
+
+  } catch (err) {
+    console.error("❌ ERREUR:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getCandidaturesByOffre = async (req, res) => {
+  try {
+    const offre = await Offre.findOne({
+      _id: req.params.id,
+      entreprise: req.user.id
+    });
+
+    if (!offre) {
+      return res.status(404).json({ message: "Offre non trouvée" });
+    }
+
+    const candidatures = await Candidature.find({
+      offre: offre._id
+    })
+      .populate("candidat", "username email")
+      .populate("offre", "titre");
+
+    res.json({
+      titre: offre.titre,
+      candidatures
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Erreur chargement" });
+  }
+};
+
+
+
 // DELETE
 exports.deleteOffre = async (req, res) => {
   try {
-    const deleted = await Offre.findOneAndDelete({ _id: req.params.id, entreprise: req.user.id });
-    if (!deleted) return res.status(404).json({ message: "Offre non trouvée" });
-    res.json({ message: "Offre supprimée" });
+    const offre = await Offre.findOne({
+      _id: req.params.id,
+      entreprise: req.user.id
+    });
+
+    if (!offre) {
+      return res.status(404).json({ message: "Offre non trouvée" });
+    }
+
+    // Supprimer toutes les candidatures liées à cette offre
+    await Candidature.deleteMany({ offre: offre._id });
+
+    //  Supprimer l’offre
+    await Offre.deleteOne({ _id: offre._id });
+
+    res.json({ message: "Offre et candidatures supprimées" });
+
   } catch (err) {
-    res.status(500).json({ message: "Erreur suppression", err: err.message });
+    res.status(500).json({
+      message: "Erreur suppression",
+      err: err.message
+    });
   }
 };
 
