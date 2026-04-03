@@ -5,9 +5,9 @@ const OffreSchema = new mongoose.Schema({
   titre: { type: String, required: true },
   localisation: { type: String, required: true },
   description: { type: String, required: true },
-  competences: [{ type: String }],
-experience: { type: Number },
-niveau: { type: String },
+competences: [{ type: String }], // ex: ["react", "nodejs"]
+  experience: { type: Number, default: 0 }, // années
+  niveau: { type: String } // ex: "licence", "master"
 
 }, { timestamps: true });
 

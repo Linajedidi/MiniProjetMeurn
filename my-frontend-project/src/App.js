@@ -27,7 +27,9 @@ import DemandeC from "./pages/CandidatDemande";
 import CandidaturesPage from "./pages/CandidaturesPage";
 import ProfileEntreprise from "./pages/ProfileEntreprise";
 
+import Notif from "./pages/Notifications"
 
+import NotifAdmin from "./pages/NotifAdmin";
 
 function App() {
   return (
@@ -46,7 +48,10 @@ function App() {
         {/* Routes protégées */}
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/pages/AdminDashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />
-        
+        <Route  path="/NotifAdmin" element={<ProtectedRoute role="ADMIN"><NotifAdmin /></ProtectedRoute>} />
+  
+
+
         <Route path="/pages/EntrepriseHome" element={<ProtectedRoute role="ENTREPRISE"><EntrepriseHome /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute role="ADMIN"><AdminLayout /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute role="ADMIN"><UsersPage /></ProtectedRoute>} />
@@ -66,12 +71,15 @@ function App() {
         <Route path="/pages/edit-offre/:id" element={<EditOffre/>} />
         <Route path="/create-cv" element={<CreateCV />} />
         <Route path="/candidaturesPage"element={<ProtectedRoute role="ENTREPRISE"><CandidaturesPage /></ProtectedRoute>}/>
+        <Route path="/NotifAdmin" element={<NotifAdmin />} />
 
         <Route path="/profile-entreprise" element={ <ProtectedRoute role="ENTREPRISE"><ProfileEntreprise /> </ProtectedRoute>
   }
 />
 
-
+<Route  path="/notifications" element={<ProtectedRoute role="ENTREPRISE"> <Notif /></ProtectedRoute>
+  }
+/>
         
         <Route path="/candidate-home" element={<ProtectedRoute role="CANDIDAT"><CandidatHome /></ProtectedRoute>} />
         <Route path="/ProfilePageC"element={<ProtectedRoute role="CANDIDAT"><ProfilePageC /></ProtectedRoute>}/>

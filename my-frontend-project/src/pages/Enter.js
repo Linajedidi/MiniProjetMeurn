@@ -104,7 +104,6 @@ const S = () => (
   `}</style>
 );
 
-// Fonction pour gérer les erreurs de chargement d'image
 const handleImageError = (e) => {
   e.target.onerror = null;
   e.target.src = "https://via.placeholder.com/280x280?text=Inscription+Entreprise";
@@ -126,7 +125,11 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [tel, setTel] = useState("");
   const [nomEntreprise, setNomEntreprise] = useState("");
+  //  état pour le code fiscal
+  const [codeFiscal, setCodeFiscal] = useState("");
   const [secteur, setSecteur] = useState("");
+  //   état pour "Autre" secteur
+  const [secteurAutre, setSecteurAutre] = useState("");
   const [ville, setVille] = useState("");
   const [description, setDescription] = useState("");
 
@@ -135,7 +138,6 @@ export default function Register() {
     setLoading(true);
     setApiError("");
 
-    // Validation des mots de passe
     if (password !== confirmPassword) {
       setApiError("Les mots de passe ne correspondent pas");
       setLoading(false);
@@ -148,7 +150,17 @@ export default function Register() {
       return;
     }
 
-    const body = { username, email, password, tel, role: "ENTREPRISE", nomEntreprise, secteur, adresse: ville, description};
+    //  AJOUT : codeFiscal inclus + secteur résolu (Autre → secteurAutre)
+    const body = {
+      username, email, password, tel,
+      role: "ENTREPRISE",
+      nomEntreprise,
+      codeFiscal,
+      secteur: secteur === "Autre" ? secteurAutre : secteur,
+      adresse: ville,
+      description,
+    };
+
     try {
       const res = await fetch("http://localhost:3001/api/auth/register", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
@@ -157,7 +169,8 @@ export default function Register() {
       if (res.ok) {
         setModalMsg("Votre compte entreprise a été créé avec succès. Vous pouvez maintenant vous connecter et publier vos offres.");
         setShowSuccess(true);
-        setUsername(""); setEmail(""); setPassword(""); setConfirmPassword(""); setTel("");
+        setUsername(""); setEmail(""); setPassword(""); setConfirmPassword("");
+        setTel(""); setCodeFiscal(""); setSecteurAutre("");
       } else {
         setApiError(data.message || "Une erreur est survenue.");
       }
@@ -178,7 +191,6 @@ export default function Register() {
 
       <div className="page fade">
         <div className="register-container">
-          {/* Section Image - Côté gauche */}
           <div className="register-image">
             <div className="register-image-bg"></div>
             <div className="register-image-bg2"></div>
@@ -193,7 +205,6 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Section Formulaire - Côté droit */}
           <div className="register-form">
             <h2>Créer un compte Entreprise</h2>
             <p className="register-form-sub">Complétez votre profil pour commencer à publier vos offres d'emploi.</p>
@@ -259,16 +270,68 @@ export default function Register() {
                   </div>
                 </div>
 
+                {/*   champ Code fiscal */}
+                <div className="form-field">
+                  <label className="form-label">
+                    <span className="form-label-icon"><IC.FileText /></span>
+                    Code fiscal
+                  </label>
+                  <div className="input-wrap">
+                    <span className="input-wrap-icon"><IC.FileText /></span>
+                    <input
+                      className="form-input"
+                      type="text"
+                      placeholder="1234567/A/M/000"
+                      value={codeFiscal}
+                      onChange={e => setCodeFiscal(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* select secteur avec les options SECTEURS */}
                 <div className="form-field">
                   <label className="form-label"><span className="form-label-icon"><IC.Tag /></span>Secteur d'activité</label>
                   <div className="input-wrap">
                     <span className="input-wrap-icon"><IC.Tag /></span>
-                    <select className="form-select" style={{ paddingLeft: 42 }} value={secteur} onChange={e => setSecteur(e.target.value)} required>
+                    <select
+                      className="form-select"
+                      style={{ paddingLeft: 42 }}
+                      value={secteur}
+                      onChange={e => {
+                        setSecteur(e.target.value);
+                        if (e.target.value !== "Autre") setSecteurAutre("");
+                      }}
+                      required
+                    >
                       <option value="">Choisir un secteur…</option>
-                      {SECTEURS.map(s => <option key={s} value={s}>{s}</option>)}
+                      {SECTEURS.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
+
+                {/*  champ "Autre secteur" conditionnel */}
+                {secteur === "Autre" && (
+                  <div className="form-field">
+                    <label className="form-label">
+                      <span className="form-label-icon"><IC.Tag /></span>
+                      Préciser le secteur
+                    </label>
+                    <div className="input-wrap">
+                      <span className="input-wrap-icon"><IC.Tag /></span>
+                      <input
+                        className="form-input"
+                        type="text"
+                        placeholder="Votre secteur d'activité…"
+                        value={secteurAutre}
+                        onChange={e => setSecteurAutre(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="form-field">
                   <label className="form-label"><span className="form-label-icon"><IC.MapPin /></span>Ville / Localité</label>
@@ -320,8 +383,6 @@ export default function Register() {
                   </div>
                 </div>
 
-                
-
                 <div className="form-field form-full">
                   <label className="form-label">
                     <span className="form-label-icon"><IC.FileText /></span>
@@ -333,7 +394,7 @@ export default function Register() {
 
               </div>
 
-              {apiError && <div className="alert-err">❌ {apiError}</div>}
+              {apiError && <div className="alert-err"> {apiError}</div>}
 
               <button type="submit" className="btn-submit" disabled={loading} style={{ marginTop: 24 }}>
                 {loading

@@ -16,7 +16,8 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Pagination
+  Pagination,
+  Button
 } from "@mui/material";
 
 const EntrepriseHome = () => {
@@ -44,7 +45,7 @@ const EntrepriseHome = () => {
       .catch(err => console.error("Erreur chargement offres:", err));
   }, []);
 
-  // Calcul pagination
+  // Pagination logic
   const indexOfLast = page * candidaturesParPage;
   const indexOfFirst = indexOfLast - candidaturesParPage;
   const candidaturesActuelles = candidatures.slice(indexOfFirst, indexOfLast);
@@ -64,51 +65,25 @@ const EntrepriseHome = () => {
         {/* Stats */}
         <Grid container spacing={4} sx={{ my: 4 }} justifyContent="center">
           <Grid item xs={12} sm={6} md={5}>
-            <Card
-              sx={{
-                bgcolor: "primary.main",
-                color: "#fff",
-                borderRadius: 3,
-                minHeight: 140,
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <CardContent sx={{ px: 4, py: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                  Total des candidats
-                </Typography>
-                <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                  {candidatures.length}
-                </Typography>
+            <Card sx={{ bgcolor: "primary.main", color: "#fff", borderRadius: 3 }}>
+              <CardContent>
+                <Typography>Total des candidats</Typography>
+                <Typography variant="h3">{candidatures.length}</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={5}>
-            <Card
-              sx={{
-                bgcolor: "primary.main",
-                color: "#fff",
-                borderRadius: 3,
-                minHeight: 140,
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <CardContent sx={{ px: 4, py: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                  Offres d’emploi
-                </Typography>
-                <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-                  {totalOffres}
-                </Typography>
+            <Card sx={{ bgcolor: "primary.main", color: "#fff", borderRadius: 3 }}>
+              <CardContent>
+                <Typography>Offres d’emploi</Typography>
+                <Typography variant="h3">{totalOffres}</Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        {/* Tableau */}
+        {/* Table */}
         <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
           Liste des candidatures
         </Typography>
@@ -135,7 +110,20 @@ const EntrepriseHome = () => {
                 candidaturesActuelles.map(c => (
                   <TableRow key={c._id}>
                     <TableCell>{c.candidat?.username || "—"}</TableCell>
-                    <TableCell>{c.cv}</TableCell>
+
+                    {/* ✅ BUTTON CV */}
+                    <TableCell>
+                      <Button
+  variant="contained"
+  size="small"
+  onClick={() =>
+    window.open(`http://localhost:3001/${c.cv}`, "_blank")
+  }
+>
+  📄 Voir CV
+</Button>
+                    </TableCell>
+
                     <TableCell>{c.offre?.titre || "—"}</TableCell>
                     <TableCell>{c.score}%</TableCell>
                   </TableRow>
@@ -151,8 +139,7 @@ const EntrepriseHome = () => {
             <Pagination
               count={totalPages}
               page={page}
-              onChange={(event, value) => setPage(value)}
-              color="primary"
+              onChange={(e, value) => setPage(value)}
             />
           </Box>
         )}

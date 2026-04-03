@@ -39,7 +39,24 @@ const DemandeC = () => {
 
     fetchDemandes();
   }, [navigate]);
+const map = new Map();
 
+demandes.forEach(d => {
+  const offreId = d.offre?._id;
+
+  if (!map.has(offreId)) {
+    map.set(offreId, d);
+  } else {
+    const existing = map.get(offreId);
+
+    //  garder le meilleur score
+    if ((d.score ?? 0) > (existing.score ?? 0)) {
+      map.set(offreId, d);
+    }
+  }
+});
+
+const unique = Array.from(map.values());
   return (
     <Sidebar>
       <h2 className="mb-4">Mes demandes</h2>
@@ -52,7 +69,7 @@ const DemandeC = () => {
         </p>
       ) : (
         <div className="row">
-          {demandes.map((d) => (
+          {unique.map((d) => (
             <div className="col-md-4 mb-3" key={d._id}>
               <div className="card shadow-sm h-100">
                 <div className="card-body d-flex flex-column">

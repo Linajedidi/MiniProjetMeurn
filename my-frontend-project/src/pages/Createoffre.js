@@ -16,10 +16,14 @@ import {
 
 function CreateOffre() {
   const [open, setOpen] = useState(true);
+
   const [form, setForm] = useState({
     titre: "",
     localisation: "",
-    description: ""
+    description: "",
+    competences: "",
+    experience: "",
+    niveau: ""
   });
 
   const navigate = useNavigate();
@@ -35,13 +39,34 @@ function CreateOffre() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post("http://localhost:3001/api/offres", form, {
+      // transformation des données
+      const data = {
+        ...form,
+        competences: form.competences
+          ? form.competences
+              .split(",")
+              .map((s) => s.trim().toLowerCase())
+              .filter((s) => s !== "")
+          : [],
+        experience: Number(form.experience || 0),
+        niveau: form.niveau?.toLowerCase()
+      };
+
+      // validation simple
+      if (!data.titre || !data.localisation || !data.description) {
+        return alert("Veuillez remplir tous les champs obligatoires");
+      }
+
+      await axios.post("http://localhost:3001/api/offres", data, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
       });
+
       navigate("/pages/MesOffresEntr");
+
     } catch (err) {
       console.error(err);
       alert("Erreur lors de la création de l’offre");
@@ -58,6 +83,8 @@ function CreateOffre() {
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <Grid container spacing={2}>
+
+              {/* Titre */}
               <Grid item xs={12} md={6}>
                 <TextField
                   label="Titre de poste"
@@ -69,6 +96,7 @@ function CreateOffre() {
                 />
               </Grid>
 
+              {/* Localisation */}
               <Grid item xs={12} md={6}>
                 <TextField
                   label="Localisation"
@@ -80,6 +108,41 @@ function CreateOffre() {
                 />
               </Grid>
 
+              {/* Compétences */}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Compétences (react, nodejs...)"
+                  name="competences"
+                  value={form.competences}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+
+              {/* Expérience */}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Expérience requise (années)"
+                  name="experience"
+                  type="number"
+                  value={form.experience}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+
+              {/* Niveau */}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Niveau (licence, master...)"
+                  name="niveau"
+                  value={form.niveau}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+
+              {/* Description */}
               <Grid item xs={12}>
                 <TextField
                   label="Description"
@@ -92,6 +155,7 @@ function CreateOffre() {
                   required
                 />
               </Grid>
+
             </Grid>
           </Box>
         </DialogContent>
@@ -100,6 +164,7 @@ function CreateOffre() {
           <Button variant="contained" color="primary" onClick={handleSubmit}>
             Créer
           </Button>
+
           <Button variant="outlined" onClick={handleClose}>
             Annuler
           </Button>

@@ -14,7 +14,8 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Pagination
+  Pagination,
+  Button
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
@@ -117,7 +118,9 @@ const CandidaturesPage = () => {
                           <TableRow key={c._id}>
                             <TableCell>{c.candidat?.username}</TableCell>
                             <TableCell>{c.candidat?.email}</TableCell>
-                            <TableCell>{c.cv}</TableCell>
+                                <TableCell>
+                      <Button variant="contained" size="small" onClick={() =>window.open(`http://localhost:3001/${c.cv}`, "_blank")}>📄 Voir CV</Button>
+                    </TableCell>
                             <TableCell>{c.score}%</TableCell>
                           </TableRow>
                         ))}

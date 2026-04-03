@@ -122,9 +122,13 @@ const CandidatHome = () => {
 
       alert("Candidature envoyée avec succès ✅");
     } catch (error) {
-      console.error(error);
-      alert("Erreur lors de la postulation");
-    }
+  console.error(error);
+
+  const message =
+    error.response?.data?.msg || "Erreur lors de la postulation";
+
+  alert(message);
+}
   };
 
   // ================== RENDER ==================
@@ -247,8 +251,27 @@ const CandidatHome = () => {
                 </div>
 
                 <div className="modal-body">
-                  <p>{selectedOffre.description}</p>
-                </div>
+
+  <p><strong>Description :</strong> {selectedOffre.description}</p>
+
+  <p>
+    <strong>Compétences :</strong>{" "}
+    {selectedOffre.competences && selectedOffre.competences.length > 0
+      ? selectedOffre.competences.join(", ")
+      : "Non spécifiées"}
+  </p>
+
+  <p>
+    <strong>Expérience :</strong>{" "}
+    {selectedOffre.experience || 0} ans
+  </p>
+
+  <p>
+    <strong>Niveau :</strong>{" "}
+    {selectedOffre.niveau || "Non spécifié"}
+  </p>
+
+</div>
 
                 <div className="modal-footer">
                   <button

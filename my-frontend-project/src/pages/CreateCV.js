@@ -122,6 +122,10 @@ const CreateCV = () => {
       const formData = new FormData();
       formData.append("cv", pdfFile);
       formData.append("userId", userId);
+      formData.append("competences", cv.skills);       
+formData.append("experiences", cv.experience);   
+formData.append("niveaux", cv.education);   
+
 
       const res = await axios.post(
         "http://localhost:3001/api/cv/upload",
