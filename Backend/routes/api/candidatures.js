@@ -103,12 +103,19 @@ router.get(
 router.get("/", async (req, res) => {
   try {
     const list = await Candidature.find()
-  .populate("candidat", "username")
-  .populate("offre", "titre")
+  .populate("candidat", "username email") //  email 
+  .populate({
+    path: "offre",
+    select: "titre entreprise",
+    populate: {
+      path: "entreprise",
+      select: "username email"
+    }
+  })
   .sort({ createdAt: -1 });
       
-
-    res.json(list);
+const filtered = list.filter(c => c.candidat && c.offre);
+    res.json(filtered);
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Erreur serveur" });
