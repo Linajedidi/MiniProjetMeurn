@@ -120,6 +120,18 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(400).json({ msg: "Utilisateur non trouvé" });
     }
+    // Vérifier si c'est un compte Google
+    if (user.googleId && !user.password) {
+        return res.status(400).json({ 
+            msg: "Ce compte est uniquement connecté via Google. Veuillez utiliser Google pour vous connecter." 
+        });
+    }
+    // **Vérifier si le compte est actif**
+    if (user.isActive === false) {
+      return res.status(403).json({ msg: "Compte désactivé. Contactez l'administrateur." });
+    }
+
+    // Sinon vérifier le mot de passe
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -305,6 +317,23 @@ router.get("/verify-reset-token/:token", async (req, res) => {
     console.error(error);
     res.status(500).json({ valid: false });
   }
+});
+
+
+//pour le mot de passe et google 
+router.post("/set-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user || !user.googleId) {
+    return res.status(400).json({ msg: "Utilisateur non trouvé ou pas compte Google" });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  res.json({ msg: "Mot de passe défini avec succès" });
 });
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs"); 
+const nodemailer = require("nodemailer");
 
 // GET ALL + SEARCH + FILTER
 exports.getUsers = async (req, res) => {
@@ -76,14 +77,41 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// DELETE USER
-exports.deleteUser = async (req, res) => {
+//activier /desactivier :
+exports.toggleUserStatus = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted" });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
 
+    // Toggle status
+    user.isActive = !user.isActive;
+    await user.save();
+
+    // Envoyer email via Mailtrap
+    const transporter = nodemailer.createTransport({
+      host: "smtp.mailtrap.io",
+      port: 587,
+      auth: {
+        user: "f09afbb7fd45b3",
+        pass: "75d2b854d3bdc5",
+      },
+    });
+      const mailOptions = {
+      from: '"Admin" <admin@example.com>',
+      to: user.email,
+      subject: `Votre compte a été ${user.isActive ? "activé" : "désactivé"}`,
+      text: `Bonjour ${user.username},\n\nVotre compte a été ${user.isActive ? "activé" : "désactivé"} par l'administrateur.`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({
+      message: `Utilisateur ${user.isActive ? "activé" : "désactivé"} avec succès`,
+      isActive: user.isActive,
+    });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Erreur toggleUserStatus:", err);
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
 

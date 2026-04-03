@@ -10,16 +10,23 @@ email : {
     required : true ,
     unique : true ,
 },
-password :{
-    type : String ,
-    required : true ,
+ password: {
+    type: String,
+    required: function () {
+      return !this.googleId; 
+    },
+  },
 
-},
+  googleId: {  
+    type: String,
+  },
 role: { 
     type: String, 
     enum: ["ADMIN", "CANDIDAT", "ENTREPRISE"], 
     default: "CANDIDAT" 
 },
+  isActive: { type: Boolean, default: true }, 
+
 
 profileImage: {
   type: String,

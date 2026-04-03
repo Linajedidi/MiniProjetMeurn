@@ -549,7 +549,7 @@ const Register = () => {
             <p style={{ color: "#6B7280", fontSize: "0.85rem", margin: 0 }}>
               Vous avez déjà un compte ?{" "}
               <Link
-                to="/"
+                to="/login"
                 style={{
                   color: "#2D3E50",
                   fontWeight: 600,

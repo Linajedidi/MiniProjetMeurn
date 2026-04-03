@@ -22,36 +22,44 @@ const SidebarU = ({ children }) => {
      FETCH PROFIL
   */
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-        const res = await fetch("http://localhost:3001/api/users/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+      const res = await fetch("http://localhost:3001/api/users/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-        const data = await res.json();
-
-        setUser({
-          username: data.username || "Candidat",
-          profileImage: data.profileImage || "uploads/avatar.png"
-        });
-
-        localStorage.setItem("name", data.username);
-        localStorage.setItem(
-          "profileImage",
-          data.profileImage || "uploads/avatar.png"
-        );
-      } catch (err) {
-        console.error("Erreur récupération profil candidat :", err);
+      // 🔥 AJOUT IMPORTANT
+      if (!res.ok) {
+        console.error("Erreur API:", res.status);
+        return;
       }
-    };
 
-    fetchProfile();
-  }, []);
+      const data = await res.json();
+      console.log("PROFILE DATA:", data);
+
+      setUser({
+        username: data.username || "Candidat",
+        profileImage: data.profileImage || "uploads/avatar.png"
+      });
+
+      localStorage.setItem("name", data.username);
+      localStorage.setItem(
+        "profileImage",
+        data.profileImage || "uploads/avatar.png"
+      );
+
+    } catch (err) {
+      console.error("Erreur récupération profil candidat :", err);
+    }
+  };
+
+  fetchProfile();
+}, []);
 
   /*  UTILS */
   const getImageUrl = (imagePath) => {

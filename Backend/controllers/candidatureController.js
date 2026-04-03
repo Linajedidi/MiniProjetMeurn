@@ -71,109 +71,7 @@ exports.getCandidatureById = async (req, res) => {
   }
 };
 
-// Créer une nouvelle candidature
-exports.createCandidature = async (req, res) => {
-  try {
-    const { candidat, offre, cv, score } = req.body;
 
-    // Vérifier si l'offre existe
-    const offreExiste = await Offre.findById(offre);
-    if (!offreExiste) {
-      return res.status(400).json({ msg: "Offre invalide ou inexistante" });
-    }
-
-    // Vérifier si le candidat a déjà postulé à cette offre
-    const candidatureExiste = await Candidature.findOne({ candidat, offre });
-    if (candidatureExiste) {
-      return res.status(400).json({ 
-        msg: "Ce candidat a déjà postulé à cette offre" 
-      });
-    }
-
-    const newCand = new Candidature({ 
-      candidat, 
-      offre, 
-      cv: cv || "cv.pdf", 
-      score: score || 55 
-    });
-    
-    await newCand.save();
-
-    // Récupérer la candidature avec les données populées
-    const populatedCandidature = await Candidature.findById(newCand._id)
-      .populate("candidat", "username email")
-      .populate({
-        path: "offre",
-        populate: {
-          path: "entreprise",
-          select: "username email"
-        }
-      });
-
-    res.status(201).json(populatedCandidature);
-  } catch (err) {
-    console.error("Erreur createCandidature:", err);
-    res.status(500).json({ 
-      msg: "Erreur serveur lors de la création de la candidature",
-      error: err.message 
-    });
-  }
-};
-
-// Mettre à jour une candidature
-exports.updateCandidature = async (req, res) => {
-  try {
-    const { cv, score } = req.body;
-
-    const candidature = await Candidature.findByIdAndUpdate(
-      req.params.id,
-      { cv, score },
-      { new: true, runValidators: true }
-    )
-    .populate("candidat", "username email")
-    .populate({
-      path: "offre",
-      populate: {
-        path: "entreprise",
-        select: "username email"
-      }
-    });
-
-    if (!candidature) {
-      return res.status(404).json({ msg: "Candidature non trouvée" });
-    }
-
-    res.json(candidature);
-  } catch (err) {
-    console.error("Erreur updateCandidature:", err);
-    res.status(500).json({ 
-      msg: "Erreur serveur lors de la mise à jour",
-      error: err.message 
-    });
-  }
-};
-
-// Supprimer une candidature
-exports.deleteCandidature = async (req, res) => {
-  try {
-    const candidature = await Candidature.findByIdAndDelete(req.params.id);
-
-    if (!candidature) {
-      return res.status(404).json({ msg: "Candidature non trouvée" });
-    }
-
-    res.json({ 
-      msg: "Candidature supprimée avec succès",
-      deletedId: req.params.id 
-    });
-  } catch (err) {
-    console.error("Erreur deleteCandidature:", err);
-    res.status(500).json({ 
-      msg: "Erreur serveur lors de la suppression",
-      error: err.message 
-    });
-  }
-};
 
 // Récupérer les candidatures par candidat
 exports.getCandidaturesByCandidat = async (req, res) => {
@@ -223,44 +121,7 @@ exports.getCandidaturesByOffre = async (req, res) => {
   }
 };
 
-// Mettre à jour le score uniquement
-exports.updateScore = async (req, res) => {
-  try {
-    const { score } = req.body;
 
-    if (score < 0 || score > 100) {
-      return res.status(400).json({ 
-        msg: "Le score doit être compris entre 0 et 100" 
-      });
-    }
-
-    const candidature = await Candidature.findByIdAndUpdate(
-      req.params.id,
-      { score },
-      { new: true }
-    )
-    .populate("candidat", "username email")
-    .populate({
-      path: "offre",
-      populate: {
-        path: "entreprise",
-        select: "username email"
-      }
-    });
-
-    if (!candidature) {
-      return res.status(404).json({ msg: "Candidature non trouvée" });
-    }
-
-    res.json(candidature);
-  } catch (err) {
-    console.error("Erreur updateScore:", err);
-    res.status(500).json({ 
-      msg: "Erreur serveur lors de la mise à jour du score",
-      error: err.message 
-    });
-  }
-};
 
 // Statistiques des candidatures
 exports.getCandidaturesStats = async (req, res) => {

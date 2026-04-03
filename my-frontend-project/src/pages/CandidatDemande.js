@@ -21,7 +21,7 @@ const DemandeC = () => {
     const fetchDemandes = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:3001/api/candidatures"
+          "http://localhost:3001/api/candidatures/public"
         );
 
         // Seules les requêtes de l'utilisateur actuel
