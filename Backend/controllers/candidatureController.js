@@ -71,6 +71,7 @@ exports.getCandidatureById = async (req, res) => {
   }
 };
 
+
 // Créer une nouvelle candidature
 exports.createCandidature = async (req, res) => {
   try {
@@ -256,44 +257,7 @@ exports.getCandidaturesByOffre = async (req, res) => {
   }
 };
 
-// Mettre à jour le score uniquement
-exports.updateScore = async (req, res) => {
-  try {
-    const { score } = req.body;
 
-    if (score < 0 || score > 100) {
-      return res.status(400).json({ 
-        msg: "Le score doit être compris entre 0 et 100" 
-      });
-    }
-
-    const candidature = await Candidature.findByIdAndUpdate(
-      req.params.id,
-      { score },
-      { new: true }
-    )
-    .populate("candidat", "username email")
-    .populate({
-      path: "offre",
-      populate: {
-        path: "entreprise",
-        select: "username email"
-      }
-    });
-
-    if (!candidature) {
-      return res.status(404).json({ msg: "Candidature non trouvée" });
-    }
-
-    res.json(candidature);
-  } catch (err) {
-    console.error("Erreur updateScore:", err);
-    res.status(500).json({ 
-      msg: "Erreur serveur lors de la mise à jour du score",
-      error: err.message 
-    });
-  }
-};
 
 // Statistiques des candidatures
 exports.getCandidaturesStats = async (req, res) => {

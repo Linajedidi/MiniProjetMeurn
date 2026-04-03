@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Login = () => {
       localStorage.setItem("userId", res.data._id);
       localStorage.setItem("profileImage",res.data.profileImage|| "");
 
-    // 🔥 notifier toute l'app (SidebarU)
+    // notifier toute l'app (SidebarU)
     window.dispatchEvent(new Event("userUpdated"));
       setMessage(`Bienvenue ${res.data.username} !`);
 
@@ -339,6 +340,60 @@ const Login = () => {
                 "Se connecter"
               )}
             </button>
+<GoogleLogin
+  onSuccess={async (credentialResponse) => {
+    try {
+      if (!credentialResponse || !credentialResponse.credential) {
+        alert("Impossible de récupérer le token Google.");
+        return;
+      }
+
+      // Affiche l'objet complet pour debug
+      console.log(
+        "Google credentialResponse complet :",
+        JSON.stringify(credentialResponse, null, 2)
+      );
+
+      // Envoie le token au backend pour login / fusion
+      const res = await axios.post("http://localhost:3001/auth/google", {
+        tokenId: credentialResponse.credential,
+      });
+
+      // Sauvegarde les infos dans localStorage
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", res.data._id);
+      localStorage.setItem("name", res.data.username);
+      localStorage.setItem("role", res.data.role);
+      localStorage.setItem("email", res.data.email);
+      localStorage.setItem("profileImage", res.data.profileImage || "");
+
+      // Notifier l'app pour mise à jour
+      window.dispatchEvent(new Event("userUpdated"));
+
+      // Redirection selon rôle
+      switch (res.data.role) {
+        case "CANDIDAT":
+          navigate("/candidate-home");
+          break;
+        case "ENTREPRISE":
+          navigate("/pages/EntrepriseHome");
+          break;
+        case "ADMIN":
+          navigate("/pages/AdminDashboard");
+          break;
+        default:
+          navigate("/home");
+      }
+    } catch (err) {
+      console.error(err);
+      alert(
+        err.response?.data?.msg ||
+          "Erreur lors de la connexion Google. Si l'email existe déjà, votre compte sera fusionné automatiquement si configuré côté serveur."
+      );
+    }
+  }}
+  onError={() => alert("Échec connexion Google")}
+/>
 
             {/* Message d'erreur/succès */}
             {message && (

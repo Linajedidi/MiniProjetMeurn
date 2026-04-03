@@ -2,8 +2,9 @@
     "mongo_url":"mongodb://localhost:27017/recrutement",
     "jwtSecret":"jwtSecret",
     "tokenExpire":"2592000",
-      "mailtrapUser": "7f864d9d338959",
-  "mailtrapPassword": "90e7dd6c580c84",
-  "frontendUrl": "http://localhost:3000"
+    "mailtrapUser": "f09afbb7fd45b3",
+    "mailtrapPassword": "75d2b854d3bdc5",
+     "frontendUrl": "http://localhost:3000"
+  
 }
 
