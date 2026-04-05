@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import axios from "axios";
+import { FaSearch, FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaEnvelope, FaEye, FaEyeSlash, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const OffresPage = () => {
   const [offres, setOffres] = useState([]);
@@ -8,11 +9,9 @@ const OffresPage = () => {
   const [loading, setLoading] = useState(true);
   const [expandedOffres, setExpandedOffres] = useState({});
   
-  // États pour la pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [offresPerPage] = useState(2);
+  const [offresPerPage] = useState(5);
   
-  // État pour la recherche
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -20,7 +19,6 @@ const OffresPage = () => {
   }, []);
 
   useEffect(() => {
-    // Filtrer les offres quand le terme de recherche change
     if (!searchTerm.trim()) {
       setFilteredOffres(offres);
     } else {
@@ -28,11 +26,12 @@ const OffresPage = () => {
       const filtered = offres.filter(offre => 
         (offre.titre && offre.titre.toLowerCase().includes(searchLower)) ||
         (offre.entreprise?.username && offre.entreprise.username.toLowerCase().includes(searchLower)) ||
-        (offre.localisation && offre.localisation.toLowerCase().includes(searchLower))
+        (offre.localisation && offre.localisation.toLowerCase().includes(searchLower)) ||
+        (offre.domaine && offre.domaine.toLowerCase().includes(searchLower))
       );
       setFilteredOffres(filtered);
     }
-    setCurrentPage(1); // Revenir à la première page après recherche
+    setCurrentPage(1);
   }, [searchTerm, offres]);
 
   const fetchOffres = async () => {
@@ -64,7 +63,6 @@ const OffresPage = () => {
     return text.substring(0, maxLength) + "...";
   };
 
-  // Pagination
   const indexOfLastOffre = currentPage * offresPerPage;
   const indexOfFirstOffre = indexOfLastOffre - offresPerPage;
   const currentOffres = filteredOffres.slice(indexOfFirstOffre, indexOfLastOffre);
@@ -72,183 +70,495 @@ const OffresPage = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const tableStyle = {
-    borderCollapse: "collapse",
-    width: "100%",
-    marginTop: "20px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-  };
-
-  const thStyle = {
-    border: "1px solid #ddd",
-    padding: "12px",
-    backgroundColor: "#f2f2f2",
-    textAlign: "left",
-    fontWeight: "bold"
-  };
-
-  const tdStyle = {
-    border: "1px solid #ddd",
-    padding: "10px",
-    verticalAlign: "top"
-  };
-
-  const searchStyle = {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "20px",
-    border: "1px solid #ddd",
-    borderRadius: "4px",
-    fontSize: "14px",
-    boxSizing: "border-box"
-  };
-
-  const paginationStyle = {
-    display: "flex",
-    justifyContent: "center",
-    gap: "10px",
-    marginTop: "20px",
-    flexWrap: "wrap"
-  };
-
-  const pageButtonStyle = {
-    padding: "8px 12px",
-    border: "1px solid #ddd",
-    backgroundColor: "white",
-    cursor: "pointer",
-    borderRadius: "4px"
-  };
-
-  const activePageButtonStyle = {
-    ...pageButtonStyle,
-    backgroundColor: "#007bff",
-    color: "white",
-    borderColor: "#007bff"
+  const getTypeColor = (type) => {
+    const colors = {
+      'CDI': { bg: '#dcfce7', color: '#166534' },
+      'CDD': { bg: '#fff7ed', color: '#9a3412' },
+      'Stage': { bg: '#eff6ff', color: '#1e40af' },
+      'Freelance': { bg: '#faf5ff', color: '#6b21a8' }
+    };
+    return colors[type] || { bg: '#f1f5f9', color: '#475569' };
   };
 
   return (
     <Sidebar>
-      <div style={{ padding: "20px" }}>
-        <h2 style={{ marginBottom: "20px", color: "#333" }}>Liste des offres</h2>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        .offres-container {
+          font-family: 'Inter', sans-serif;
+        }
+        
+        .search-wrapper {
+          position: relative;
+          margin-bottom: 28px;
+        }
+        
+        .search-icon {
+          position: absolute;
+          left: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          font-size: 18px;
+        }
+        
+        .search-input {
+          width: 100%;
+          padding: 12px 16px 12px 48px;
+          border: 2px solid #e2e8f0;
+          border-radius: 14px;
+          font-size: 14px;
+          font-family: 'Inter', sans-serif;
+          transition: all 0.2s ease;
+          background: white;
+        }
+        
+        .search-input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        
+        .search-input::placeholder {
+          color: #94a3b8;
+        }
+        
+        .stats-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 14px;
+          background: linear-gradient(135deg, #eff6ff, #faf5ff);
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #4b5563;
+          margin-bottom: 20px;
+        }
+        
+        .offres-table {
+          background: white;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          border: 1px solid #e2e8f0;
+        }
+        
+        .offres-table thead {
+          background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+        
+        .offres-table th {
+          padding: 16px 20px;
+          font-size: 12px;
+          font-weight: 700;
+          color: #475569;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .offres-table td {
+          padding: 20px;
+          font-size: 14px;
+          color: #334155;
+          border-bottom: 1px solid #f1f5f9;
+          vertical-align: top;
+        }
+        
+        .offres-table tr {
+          transition: all 0.2s ease;
+        }
+        
+        .offres-table tr:hover {
+          background: #f8fafc;
+        }
+        
+        .entreprise-badge {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .entreprise-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 16px;
+          color: #4338ca;
+        }
+        
+        .offre-titre {
+          font-weight: 700;
+          font-size: 16px;
+          color: #0f172a;
+          margin-bottom: 6px;
+        }
+        
+        .offre-type {
+          display: inline-block;
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        
+        .info-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: #64748b;
+          margin-bottom: 4px;
+        }
+        
+        .description-text {
+          line-height: 1.6;
+          color: #475569;
+        }
+        
+        .btn-toggle {
+          background: none;
+          border: none;
+          color: #3b82f6;
+          cursor: pointer;
+          padding: 6px 0;
+          font-size: 12px;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.2s ease;
+        }
+        
+        .btn-toggle:hover {
+          color: #2563eb;
+          gap: 8px;
+        }
+        
+        .pagination-wrapper {
+          display: flex;
+          justify-content: center;
+          margin-top: 32px;
+        }
+        
+        .pagination {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        
+        .page-btn {
+          padding: 8px 14px;
+          border: 1px solid #e2e8f0;
+          background: white;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+          border-color: #3b82f6;
+          color: #3b82f6;
+          transform: translateY(-1px);
+        }
+        
+        .page-btn.active {
+          background: linear-gradient(135deg, #2563eb, #7c3aed);
+          border-color: transparent;
+          color: white;
+        }
+        
+        .page-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 80px 20px;
+        }
+        
+        .loader {
+          width: 48px;
+          height: 48px;
+          border: 3px solid #e2e8f0;
+          border-top-color: #3b82f6;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .table-row {
+          animation: fadeInUp 0.4s ease forwards;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 60px 20px;
+        }
+        
+        .empty-icon {
+          font-size: 64px;
+          color: #cbd5e1;
+          margin-bottom: 16px;
+        }
+        
+        .empty-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #475569;
+          margin-bottom: 8px;
+        }
+        
+        .empty-subtitle {
+          font-size: 14px;
+          color: #94a3b8;
+        }
+      `}</style>
 
-        {/* Barre de recherche simple */}
-        <input
-          type="text"
-          placeholder="Recherchero ..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={searchStyle}
-        />
+      <div className="offres-container">
+        {/* Header */}
+        {/*
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ 
+            fontSize: 24, 
+            fontWeight: 700, 
+            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: 8
+          }}>
+            Gestion des Offres
+          </h2>
+          <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>
+            Consultez et gérez toutes les offres d'emploi publiées sur la plateforme
+          </p>
+        </div>*/}
+
+        {/* Search Bar */}
+        <div className="search-wrapper">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Rechercher ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
 
         {loading ? (
-          <p style={{ textAlign: "center", fontSize: "18px" }}>Chargement des offres...</p>
+          <div className="loading-container">
+            <div className="loader" />
+            <p style={{ marginTop: 16, color: '#64748b' }}>Chargement des offres...</p>
+          </div>
         ) : filteredOffres.length === 0 ? (
-          <p style={{ textAlign: "center", fontSize: "18px" }}>
-            {searchTerm ? "Aucune offre trouvée" : "Aucune offre disponible"}
-          </p>
+          <div className="empty-state">
+            <div className="empty-title">
+              {searchTerm ? "Aucune offre trouvée" : "Aucune offre disponible"}
+            </div>
+            <div className="empty-subtitle">
+              {searchTerm ? "Essayez d'autres mots-clés" : "Les offres apparaîtront ici lorsqu'elles seront publiées"}
+            </div>
+          </div>
         ) : (
           <>
-            <p style={{ marginBottom: "10px", color: "#666" }}>
-              {filteredOffres.length} offre{filteredOffres.length > 1 ? 's' : ''} trouvée{filteredOffres.length > 1 ? 's' : ''}
-            </p>
-
-            <table style={tableStyle}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Titre</th>
-                  <th style={thStyle}>Localisation</th>
-                  <th style={{...thStyle, width: "35%"}}>Description</th>
-                  <th style={thStyle}>Entreprise</th>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentOffres.map((offre) => (
-                  <tr key={offre._id}>
-                    <td style={tdStyle}>
-                      <strong>{offre.titre}</strong>
-                    </td>
-                    <td style={tdStyle}>{offre.localisation}</td>
-                    <td style={tdStyle}>
-                      {offre.description ? (
-                        <div>
-                          <div>
-                            {expandedOffres[offre._id] 
-                              ? offre.description 
-                              : truncateText(offre.description, 120)}
-                          </div>
-                          {offre.description.length > 120 && (
-                            <button
-                              onClick={() => toggleDescription(offre._id)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                color: "#007bff",
-                                cursor: "pointer",
-                                padding: "5px 0",
-                                textDecoration: "underline",
-                                fontSize: "12px"
-                              }}
-                            >
-                              {expandedOffres[offre._id] ? "Voir moins" : "Voir plus"}
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <em style={{ color: "#999" }}>Aucune description</em>
-                      )}
-                    </td>
-                    <td style={tdStyle}>
-                      {offre.entreprise?.username || "—"}
-                    </td>
-                    <td style={tdStyle}>
-                      {offre.entreprise?.email || "—"}
-                    </td>
-                    <td style={tdStyle}>
-                      {offre.createdAt 
-                        ? new Date(offre.createdAt).toLocaleDateString('fr-FR')
-                        : "—"}
-                    </td>
+            <div className="offres-table">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                  <th style={{ width: '15%' }}>Entreprise</th>
+                    <th style={{ width: '25%' }}>Offre</th>
+                    <th style={{ width: '15%' }}>Localisation</th>
+                    <th style={{ width: '30%' }}>Description</th>
+                    <th style={{ width: '15%' }}>Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  
+                  {currentOffres.map((offre, index) => {
+                    const typeColor = getTypeColor(offre.type);
+                    return (
+                      <tr key={offre._id} className="table-row" style={{ animationDelay: `${index * 0.05}s` }}>
+                         <td>
+                          <div className="entreprise-badge">
+                            <div className="entreprise-avatar">
+                              {(offre.entreprise?.username || "E").charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                                {offre.entreprise?.username || "—"}
+                              </div>
+                              {offre.entreprise?.email && (
+                                <div className="info-row" style={{ marginTop: 4 }}>
+                                  <FaEnvelope size={10} />
+                                  <span style={{ fontSize: 11 }}>{offre.entreprise.email}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="offre-titre">{offre.titre || "Titre non défini"}</div>
+                          {offre.type && (
+                            <span className="offre-type" style={typeColor}>
+                              {offre.type}
+                            </span>
+                          )}
+                          {offre.domaine && (
+                            <div className="info-row" style={{ marginTop: 8 }}>
+                              <span>{offre.domaine}</span>
+                            </div>
+                          )}
+                          {offre.salaire && (
+                            <div className="info-row">
+                              <span>{offre.salaire}</span>
+                            </div>
+                          )}
+                        </td>
+                        
+                        <td>
+                          <div className="info-row">
+                            <FaMapMarkerAlt size={12} />
+                            <span>{offre.localisation || "Non spécifiée"}</span>
+                          </div>
+                        </td>
+                        <td>
+                          {offre.description ? (
+                            <div>
+                              <div className="description-text">
+                                {expandedOffres[offre._id] 
+                                  ? offre.description 
+                                  : truncateText(offre.description, 120)}
+                              </div>
+                              {offre.description.length > 120 && (
+                                <button
+                                  className="btn-toggle"
+                                  onClick={() => toggleDescription(offre._id)}
+                                >
+                                  {expandedOffres[offre._id] ? (
+                                    <>Voir moins <FaEyeSlash size={12} /></>
+                                  ) : (
+                                    <>Voir plus <FaEye size={12} /></>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <em style={{ color: '#94a3b8', fontSize: 13 }}>Aucune description</em>
+                          )}
+                        </td>
+                       
+                        <td>
+                          <div className="info-row">
+                            <FaCalendarAlt size={12} />
+                            <span>
+                              {offre.createdAt 
+                                ? new Date(offre.createdAt).toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                  })
+                                : "—"}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div style={paginationStyle}>
-                <button
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  style={{
-                    ...pageButtonStyle,
-                    opacity: currentPage === 1 ? 0.5 : 1
-                  }}
-                >
-                  Précédent
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+              <div className="pagination-wrapper">
+                <div className="pagination">
                   <button
-                    key={number}
-                    onClick={() => paginate(number)}
-                    style={currentPage === number ? activePageButtonStyle : pageButtonStyle}
+                    className="page-btn"
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
                   >
-                    {number}
+                    <FaChevronLeft size={12} /> Précédent
                   </button>
-                ))}
-                
-                <button
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  style={{
-                    ...pageButtonStyle,
-                    opacity: currentPage === totalPages ? 0.5 : 1
-                  }}
-                >
-                  Suivant
-                </button>
+                  
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 7) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 4) {
+                      pageNumber = i + 1;
+                      if (i === 6) pageNumber = '...';
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNumber = totalPages - 6 + i;
+                      if (i === 0) pageNumber = '...';
+                    } else {
+                      pageNumber = currentPage - 3 + i;
+                      if (i === 0) pageNumber = '...';
+                      if (i === 6) pageNumber = '...';
+                    }
+                    
+                    if (pageNumber === '...') {
+                      return (
+                        <span key={i} className="page-btn" style={{ cursor: 'default', border: 'none' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    
+                    return (
+                      <button
+                        key={i}
+                        className={`page-btn ${currentPage === pageNumber ? 'active' : ''}`}
+                        onClick={() => paginate(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                  
+                  <button
+                    className="page-btn"
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Suivant <FaChevronRight size={12} />
+                  </button>
+                </div>
               </div>
             )}
           </>

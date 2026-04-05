@@ -27,7 +27,7 @@ router.post("/upload", upload.single("cv"), async (req, res) => {
     console.log("REQ BODY:", req.body); 
     const { userId, competences, experiences, niveaux } = req.body;
 
-    // 🔁 Supprimer l’ancien CV s’il existe
+    //  Supprimer l’ancien CV s’il existe
     const oldCV = await CV.findOne({ user: userId });
     if (oldCV) {
       await CV.deleteOne({ user: userId });

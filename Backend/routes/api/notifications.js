@@ -13,6 +13,8 @@ router.get("/", auth, async (req, res) => {
     res.status(500).json({ msg: "Erreur serveur" })
   }
 })
+
+
 router.put("/read/:id", auth, async (req, res) => {
   try {
     await Notification.findByIdAndUpdate(
