@@ -7,7 +7,8 @@ import {
   FaUserTie, 
   FaUser, 
   FaSignOutAlt,
-  FaBell
+  FaBell,
+  FaChevronDown
 } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
@@ -48,16 +49,23 @@ const Sidebar = ({ children }) => {
   const getTitle = () => pageTitles[location.pathname] || 'Administration';
   const getSubtitle = () => pageSubtitles[location.pathname] || '';
 
+  // Style avec dégradé bleu vers violet pour l'item actif
   const menuStyle = (path) => ({
-    padding: '15px 20px',
+    padding: '10px 16px',
+    margin: '2px 8px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: location.pathname === path ? '#1e73be' : 'transparent',
-    color: 'white',
-    fontWeight: location.pathname === path ? 'bold' : 'normal',
-    borderRadius: '5px'
+    background: location.pathname === path 
+      ? 'linear-gradient(135deg, #2563eb, #7c3aed)' 
+      : 'transparent',
+    color: location.pathname === path ? '#fff' : '#475569',
+    fontWeight: location.pathname === path ? '600' : '500',
+    borderRadius: '10px',
+    transition: 'all 0.2s ease',
+    fontSize: '13px',
+    boxShadow: location.pathname === path ? '0 2px 8px rgba(37,99,235,0.2)' : 'none'
   });
 
   // 🔔 Notifications count
@@ -70,14 +78,13 @@ const Sidebar = ({ children }) => {
     }
   };
 
-  // refresh externe
   useEffect(() => {
     window.refreshNotif = fetchNotifCount;
   }, []);
 
   useEffect(() => {
     fetchNotifCount();
-    const interval = setInterval(fetchNotifCount, 2000);
+    const interval = setInterval(fetchNotifCount, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -106,7 +113,6 @@ const Sidebar = ({ children }) => {
     fetchProfile();
   }, []);
 
-  // fermer dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -115,10 +121,7 @@ const Sidebar = ({ children }) => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -132,94 +135,297 @@ const Sidebar = ({ children }) => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F7F6F2' }}>
       
-      {/* SIDEBAR */}
+      {/* SIDEBAR - Version avec fond blanc et accents bleu/violet */}
       <div style={{
         width: '250px',
-        backgroundColor: '#155a96',
+        background: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        boxShadow: '2px 0 12px rgba(0,0,0,0.04)',
+        borderRight: '1px solid #e2e8f0',
+        position: 'fixed',
+        height: '100vh',
+        overflowY: 'auto'
       }}>
 
+        {/* Logo Section - Dégradé bleu/violet */}
         <div>
-          <h3 style={{ textAlign: 'center', padding: '20px', color: 'white' }}>
-            Admin
-          </h3>
+          <div style={{ 
+            padding: '20px 20px 16px 20px',
+            borderBottom: '1px solid #e2e8f0',
+            marginBottom: 16
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 34,
+                height: 34,
+                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(37,99,235,0.2)'
+              }}>
+                <FaBriefcase size={16} color="#fff" />
+              </div>
+              <span style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 18,
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.02em'
+              }}>
+                JobBoard
+              </span>
+            </div>
+            <p style={{
+              fontSize: 10,
+              color: '#94a3b8',
+              marginTop: 8,
+              marginBottom: 0
+            }}>
+              Interface d'administration
+            </p>
+          </div>
 
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
 
-            <li style={menuStyle('/pages/AdminDashboard')} onClick={() => navigate('/pages/AdminDashboard')}>
-              <span><FaTachometerAlt /> Tableau de bord</span>
+            <li 
+              style={menuStyle('/pages/AdminDashboard')} 
+              onClick={() => navigate('/pages/AdminDashboard')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/pages/AdminDashboard') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/pages/AdminDashboard') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaTachometerAlt size={15} style={{ color: location.pathname === '/pages/AdminDashboard' ? '#fff' : '#6366f1' }} /> 
+                Tableau de bord
+              </span>
             </li>
 
-            <li style={menuStyle('/users')} onClick={() => navigate('/users')}>
-              <span><FaUsers /> Utilisateurs</span>
+            <li 
+              style={menuStyle('/users')} 
+              onClick={() => navigate('/users')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/users') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/users') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaUsers size={15} style={{ color: location.pathname === '/users' ? '#fff' : '#6366f1' }} /> 
+                Utilisateurs
+              </span>
             </li>
 
-            <li style={menuStyle('/offres')} onClick={() => navigate('/offres')}>
-              <span><FaBriefcase /> Offres</span>
+            <li 
+              style={menuStyle('/offres')} 
+              onClick={() => navigate('/offres')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/offres') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/offres') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaBriefcase size={15} style={{ color: location.pathname === '/offres' ? '#fff' : '#6366f1' }} /> 
+                Offres
+              </span>
             </li>
 
-            <li style={menuStyle('/entreprise')} onClick={() => navigate('/entreprise')}>
-              <span><FaBuilding /> Entreprises</span>
+            <li 
+              style={menuStyle('/entreprise')} 
+              onClick={() => navigate('/entreprise')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/entreprise') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/entreprise') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaBuilding size={15} style={{ color: location.pathname === '/entreprise' ? '#fff' : '#6366f1' }} /> 
+                Entreprises
+              </span>
             </li>
 
             {/* 🔔 NOTIFICATIONS */}
-            <li style={menuStyle('/NotifAdmin')} onClick={() => navigate('/NotifAdmin')}>
-              <span><FaBell /> Validation entreprises</span>
+            <li 
+              style={menuStyle('/NotifAdmin')} 
+              onClick={() => navigate('/NotifAdmin')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/NotifAdmin') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/NotifAdmin') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaBell size={15} style={{ color: location.pathname === '/NotifAdmin' ? '#fff' : '#6366f1' }} /> 
+                Validation
+              </span>
 
               {notifCount > 0 && (
                 <span style={{
-                  backgroundColor: "red",
-                  borderRadius: "50%",
-                  padding: "4px 10px",
-                  fontSize: "12px"
+                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                  borderRadius: '12px',
+                  padding: '2px 6px',
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  color: '#fff',
+                  minWidth: '20px',
+                  textAlign: 'center'
                 }}>
                   {notifCount > 99 ? "99+" : notifCount}
                 </span>
               )}
             </li>
 
-            <li style={menuStyle('/Candidat')} onClick={() => navigate('/Candidat')}>
-              <span><FaUserTie /> Candidats</span>
+            <li 
+              style={menuStyle('/Candidat')} 
+              onClick={() => navigate('/Candidat')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/Candidat') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/Candidat') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaUserTie size={15} style={{ color: location.pathname === '/Candidat' ? '#fff' : '#6366f1' }} /> 
+                Candidats
+              </span>
             </li>
 
-            <li style={menuStyle('/profile')} onClick={() => navigate('/profile')}>
-              <span><FaUser /> Profil</span>
+            <li 
+              style={menuStyle('/profile')} 
+              onClick={() => navigate('/profile')}
+              onMouseEnter={e => {
+                if (location.pathname !== '/profile') {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))';
+                }
+              }}
+              onMouseLeave={e => {
+                if (location.pathname !== '/profile') {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FaUser size={15} style={{ color: location.pathname === '/profile' ? '#fff' : '#6366f1' }} /> 
+                Profil
+              </span>
             </li>
 
           </ul>
         </div>
 
-        {/* LOGOUT */}
-        <div onClick={handleLogout} style={{
-          padding: '15px',
-          cursor: 'pointer',
-          color: 'white'
-        }}>
-          <FaSignOutAlt /> Déconnexion
+        {/* LOGOUT Section */}
+        <div style={{ padding: '16px 20px 24px', borderTop: '1px solid #e2e8f0', marginTop: 'auto' }}>
+          <div 
+            onClick={handleLogout} 
+            style={{
+              padding: '10px 16px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              borderRadius: '10px',
+              transition: 'all 0.2s ease',
+              color: '#64748b',
+              fontSize: '13px',
+              fontWeight: 500
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.08))';
+              e.currentTarget.style.color = '#dc2626';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#64748b';
+            }}
+          >
+            <FaSignOutAlt size={15} /> Déconnexion
+          </div>
         </div>
       </div>
 
-      {/* CONTENT */}
-      <div style={{ flex: 1, backgroundColor: '#f4f6f9' }}>
+      {/* CONTENT AREA */}
+      <div style={{ 
+        flex: 1, 
+        marginLeft: '250px',
+        minHeight: '100vh',
+        background: '#F7F6F2'
+      }}>
 
-        {/* HEADER AVEC PROFIL */}
+        {/* HEADER AVEC PROFIL - Dégradé bleu/violet */}
         <div style={{
-          backgroundColor: '#1e73be',
-          color: 'white',
-          padding: '20px 30px',
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
+          padding: '14px 28px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          position: 'relative'
+          position: 'sticky',
+          top: 0,
+          zIndex: 99
         }}>
 
           <div>
-            <h3 style={{ margin: 0 }}>{getTitle()}</h3>
-            <p style={{ margin: 0 }}>{getSubtitle()}</p>
+            <h3 style={{ 
+              margin: 0,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 18,
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              {getTitle()}
+            </h3>
+            <p style={{ 
+              margin: '2px 0 0',
+              fontSize: 12,
+              color: '#64748b'
+            }}>
+              {getSubtitle()}
+            </p>
           </div>
 
           <div ref={dropdownRef} style={{ position: 'relative' }}>
@@ -229,54 +435,91 @@ const Sidebar = ({ children }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                padding: '4px 12px',
+                borderRadius: '30px',
+                background: dropdownOpen ? 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))' : 'transparent',
+                transition: 'all 0.2s ease'
               }}
             >
-              <span>{user.username}</span>
+              <span style={{ 
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#334155'
+              }}>
+                {user.username}
+              </span>
 
               <img
                 src={getImageUrl(user.profileImage)}
                 alt="profile"
                 style={{
-                  width: "40px",
-                  height: "40px",
+                  width: "34px",
+                  height: "34px",
                   borderRadius: "50%",
                   objectFit: "cover",
-                  border: "2px solid white"
+                  border: "2px solid #e2e8f0"
                 }}
               />
+              
+              <FaChevronDown size={11} style={{ color: '#94a3b8' }} />
             </div>
 
             {dropdownOpen && (
               <div style={{
                 position: 'absolute',
-                top: '55px',
+                top: '46px',
                 right: 0,
-                backgroundColor: 'white',
-                color: '#333',
-                borderRadius: '5px',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                width: '160px',
-                zIndex: 1000
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)',
+                width: '180px',
+                zIndex: 1000,
+                overflow: 'hidden',
+                border: '1px solid #e2e8f0'
               }}>
                 <div
                   onClick={() => {
                     navigate('/profile');
                     setDropdownOpen(false);
                   }}
-                  style={{ padding: '10px', cursor: 'pointer', display: 'flex', gap: '10px' }}
+                  style={{ 
+                    padding: '10px 14px', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    gap: '10px',
+                    transition: 'background 0.2s ease',
+                    fontSize: 13,
+                    color: '#334155'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.05), rgba(124,58,237,0.05))'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
                 >
-                  <FaUser /> Profil
+                  <FaUser size={13} style={{ color: '#6366f1' }} /> Mon profil
                 </div>
+
+                <div style={{ height: '1px', background: '#e2e8f0' }} />
 
                 <div
                   onClick={() => {
                     handleLogout();
                     setDropdownOpen(false);
                   }}
-                  style={{ padding: '10px', cursor: 'pointer', display: 'flex', gap: '10px' }}
+                  style={{ 
+                    padding: '10px 14px', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    gap: '10px',
+                    transition: 'background 0.2s ease',
+                    fontSize: 13,
+                    color: '#dc2626'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
                 >
-                  <FaSignOutAlt /> Déconnexion
+                  <FaSignOutAlt size={13} /> Déconnexion
                 </div>
               </div>
             )}
@@ -284,7 +527,8 @@ const Sidebar = ({ children }) => {
 
         </div>
 
-        <div style={{ padding: '30px' }}>
+        {/* MAIN CONTENT */}
+        <div style={{ padding: '24px 28px' }}>
           {children}
         </div>
 

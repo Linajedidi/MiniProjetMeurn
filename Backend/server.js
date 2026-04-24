@@ -31,6 +31,7 @@ const mongo_url=config.get("mongo_url");
 mongoose.set("strictQuery",true);
 mongoose.connect(mongo_url).then(()=>console.log("MongoDBconnected...")).catch((err)=>console.log(err));
 app.use("/users",users);
+
 app.use("/api/candidatures", candidaturesRoute);
 app.use("/api", offreRoutes);
 

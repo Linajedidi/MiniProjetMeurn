@@ -1,12 +1,27 @@
 const router = require("express").Router();
 const User = require("../../models/User");
 const { sendEntrepriseStatusEmail } = require("../../services/emailService");
+
+
+// récupérer toutes les entreprises
+router.get("/", async (req, res) => {
+  try {
+    const entreprises = await User.find({ role: "ENTREPRISE" }).sort({ createdAt: -1 });
+    res.json(entreprises);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+}); 
+
 //  entreprises en attente
 router.get("/en-attente", async (req, res) => {
   try {
     const entreprises = await User.find({
       role: "ENTREPRISE",
-      status: "EN_ATTENTE"
+      status: "EN_ATTENTE",
+        isActive: true
+
     });
 
     res.json(entreprises);
@@ -20,7 +35,9 @@ router.get("/count", async (req, res) => {
   try {
     const count = await User.countDocuments({
       role: "ENTREPRISE",
-      status: "EN_ATTENTE"
+      status: "EN_ATTENTE",
+      isActive: true   
+
     });
 
     res.json({ count });
@@ -35,6 +52,8 @@ router.put("/:id/accepter", async (req, res) => {
     const user = await User.findById(req.params.id);
 
     user.status = "ACCEPTE";
+    user.isActive= true ;  
+
     await user.save();
 
     await sendEntrepriseStatusEmail(user.email, user.username, "ACCEPTE");
@@ -53,6 +72,11 @@ router.put("/:id/refuser", async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
+
+    user.status = "REFUSE";
+    user.isActive= false ;
+    await user.save(); 
+    
 
     //  envoyer email AVANT suppression
     await sendEntrepriseStatusEmail(user.email, user.username, "REFUSE");

@@ -77,6 +77,33 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+// UPDATE ENTREPRISE PROFILE (avec toutes les infos)
+exports.updateEntrepriseProfile = async (req, res) => {
+  try {
+    const updates = {};
+
+    Object.keys(req.body).forEach((key) => {
+      if (req.body[key] !== undefined && req.body[key] !== "") {
+        updates[key] = req.body[key];
+      }
+    });
+
+    console.log("DATA UPDATE:", updates); // 🔥 debug
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updates },
+      { new: true }
+    ).select("-password");
+
+    res.json(user);
+
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+};
+
 //activier /desactivier :
 exports.toggleUserStatus = async (req, res) => {
   try {
@@ -85,17 +112,13 @@ exports.toggleUserStatus = async (req, res) => {
 
     // Toggle status
     user.isActive = !user.isActive;
+    if (!user.isActive) {
+      user.status = "REFUSE"; 
+    }
     await user.save();
 
     // Envoyer email via Mailtrap
-    const transporter = nodemailer.createTransport({
-      host: "smtp.mailtrap.io",
-      port: 587,
-      auth: {
-        user: "f09afbb7fd45b3",
-        pass: "75d2b854d3bdc5",
-      },
-    });
+
       const mailOptions = {
       from: '"Admin" <admin@example.com>',
       to: user.email,

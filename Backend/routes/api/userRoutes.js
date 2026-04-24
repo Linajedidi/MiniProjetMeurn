@@ -6,6 +6,8 @@ const upload = require("../../middleware/upload");
 router.get("/", userController.getUsers);
 router.post("/", userController.createUser);
 router.put("/:id", userController.updateUser);
+router.put("/profile/update-entreprise", authMiddleware, userController.updateEntrepriseProfile);
+
 router.put("/toggle/:id", authMiddleware, userController.toggleUserStatus);
 
 router.get("/profile", authMiddleware, userController.getMyProfile);

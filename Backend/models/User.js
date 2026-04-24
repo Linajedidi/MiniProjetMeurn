@@ -20,6 +20,13 @@ email : {
   googleId: {  
     type: String,
   },
+  authProvider: {            
+    type: String,
+    enum: ["local", "google"], 
+    default: function() {
+      return this.googleId ? "google" : "local";
+    }
+  },
 role: { 
     type: String, 
     enum: ["ADMIN", "CANDIDAT", "ENTREPRISE"], 
